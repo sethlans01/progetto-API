@@ -39,7 +39,7 @@ include CMakeFiles/rules.ninja
 #############################################
 # Logical path to working directory; prefix for absolute paths.
 
-cmake_ninja_workdir = /Users/iodic/CLionProjects/untitled/cmake-build-debug/
+cmake_ninja_workdir = /Users/iodic/CLionProjects/progetto-API/cmake-build-debug/
 # =============================================================================
 # Object build statements for EXECUTABLE target untitled
 
@@ -49,7 +49,7 @@ cmake_ninja_workdir = /Users/iodic/CLionProjects/untitled/cmake-build-debug/
 
 build cmake_object_order_depends_target_untitled: phony || CMakeFiles/untitled.dir
 
-build CMakeFiles/untitled.dir/main.c.o: C_COMPILER__untitled_Debug /Users/iodic/CLionProjects/untitled/main.c || cmake_object_order_depends_target_untitled
+build CMakeFiles/untitled.dir/main.c.o: C_COMPILER__untitled_Debug /Users/iodic/CLionProjects/progetto-API/main.c || cmake_object_order_depends_target_untitled
   DEP_FILE = CMakeFiles/untitled.dir/main.c.o.d
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -std=gnu11
   OBJECT_DIR = CMakeFiles/untitled.dir
@@ -79,7 +79,7 @@ build untitled: C_EXECUTABLE_LINKER__untitled_Debug CMakeFiles/untitled.dir/main
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/iodic/CLionProjects/untitled/cmake-build-debug && /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /Users/iodic/CLionProjects/progetto-API/cmake-build-debug && /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 
@@ -90,7 +90,7 @@ build edit_cache: phony CMakeFiles/edit_cache.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/iodic/CLionProjects/untitled/cmake-build-debug && /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake --regenerate-during-build -S/Users/iodic/CLionProjects/untitled -B/Users/iodic/CLionProjects/untitled/cmake-build-debug
+  COMMAND = cd /Users/iodic/CLionProjects/progetto-API/cmake-build-debug && /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake --regenerate-during-build -S/Users/iodic/CLionProjects/progetto-API -B/Users/iodic/CLionProjects/progetto-API/cmake-build-debug
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -106,7 +106,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # =============================================================================
 
 #############################################
-# Folder: /Users/iodic/CLionProjects/untitled/cmake-build-debug
+# Folder: /Users/iodic/CLionProjects/progetto-API/cmake-build-debug
 
 build all: phony untitled
 
