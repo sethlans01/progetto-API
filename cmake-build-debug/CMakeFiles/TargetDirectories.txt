@@ -1,0 +1,3 @@
+/Users/iodic/CLionProjects/untitled/cmake-build-debug/CMakeFiles/untitled.dir
+/Users/iodic/CLionProjects/untitled/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/iodic/CLionProjects/untitled/cmake-build-debug/CMakeFiles/rebuild_cache.dir
