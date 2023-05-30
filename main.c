@@ -39,13 +39,14 @@ typedef struct Graph* graph;
  */
 void addStation(graph highway, int distance, int car_number, int* cars_to_add);
 void removeStation(graph highway, int distance);
-void addCar(int station, int car_power);
+void addCar(graph highway, int station, int car_power);
 void removeCar(int station, int car);
 void findRoute(int source, int destination);
 
 /*
  * SECTION FOR MAX-HEAP GENERAL MANAGEMENT FUNCTION DECLARATION
  */
+void maxHeapify(int* array, int size, int i);
 int* buildMaxHeap(int* array, int size);
 
 /*
@@ -56,6 +57,7 @@ int* buildMaxHeap(int* array, int size);
  * SECTION FOR GRAPH SPECIFIC OPERATIONS
  */
 int findStation(graph highway, int station);
+int findCar(node station, int car);
 struct Node** initializeAdjacencyList(graph highway, node new_node);
 
 /*
@@ -65,7 +67,7 @@ struct Node** initializeAdjacencyList(graph highway, node new_node);
  * Implement the main loop of the app, i.e. the part that reads the file and calls the adequate functions [DONE]
  * TODO: Implement aggiungi-stazione: finish initializeAdjacencyList
  * Implement demolisci-stazione [DONE]
- * TODO: Implement aggiungi-auto
+ * Implement aggiungi-auto [DONE]
  * TODO: Implement rottama-auto
  * TODO: Implement pianifica-percorso
  *
@@ -120,7 +122,7 @@ int main() {
             scanf("%d", &car_power);
 
             // Call the function to add a car to the data structure
-            addCar(station, car_power);
+            addCar(highway, station, car_power);
         } else if (strcmp(command, DESTROY_CAR) == 0){
             int station;
             int car;
@@ -217,9 +219,43 @@ void removeStation(graph highway, int distance){
 
 }
 
-//TODO: [IMPL] Implement this
-void addCar(int station, int car_power){
-    printf("Added car\n");
+void addCar(graph highway, int station, int car_power){
+
+    // Check if the station exists
+    int position = findStation(highway, station);
+    if(position == -1){
+        // The station does not exist, so don't add the car
+        printf("non aggiunta\n");
+    } else {
+        // The station exists, so check if the car exists in that station
+
+        // Find the adjacency list where the root is the station
+        int list_position = 0;
+        for(int i = 0; i < highway -> number_of_nodes; i++){
+            if(highway -> adjacencyLists[i] -> root -> station_id == station){
+                list_position = i;
+                break;
+            }
+        }
+
+        int car_position = findCar(highway -> adjacencyLists[list_position] -> root, car_power);
+        if(car_position == -1){
+            // The car is not present in the list, so add it to the list
+            int* cars = highway -> adjacencyLists[list_position] -> root -> cars;
+            cars = (int*) realloc(cars, (highway -> adjacencyLists[list_position] -> root -> car_number + 1) * sizeof(int));
+            cars[highway -> adjacencyLists[list_position] -> root -> car_number] = car_power;
+            highway->adjacencyLists[list_position]->root->cars = cars;
+
+            // Update the car number in the station
+            highway -> adjacencyLists[list_position] -> root -> car_number++;
+
+            printf("aggiunta\n");
+        } else {
+            // The car is already present so don't add it and return
+            printf("non aggiunta\n");
+        }
+    }
+
 }
 
 //TODO: [IMPL] Implement this
@@ -284,6 +320,26 @@ int findStation(graph highway, int station){
     }
 
     // If the program arrives here it means that the station does not exist
+    return -1;
+}
+
+/*
+ * @returns -1 if the car is not present in the station, otherwise returns the position of the car in the struct
+ */
+int findCar(node station, int car){
+    // If there are no cars in the station return false
+    if(station -> car_number == 0){
+        return -1;
+    }
+
+    // Otherwise try to find the car
+    for(int i = 0; i < station -> car_number; i++){
+        if(station -> cars[i] == car){
+            return i;
+        }
+    }
+
+    // If the code arrives here there it means that the car has not been found in the station
     return -1;
 }
 
