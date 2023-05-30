@@ -46,7 +46,7 @@ void findRoute(int source, int destination);
 /*
  * SECTION FOR MAX-HEAP GENERAL MANAGEMENT FUNCTION DECLARATION
  */
-int* buildMaxHeap(int* array);
+int* buildMaxHeap(int* array, int size);
 
 /*
  * SECTION FOR GRAPH GENERAL MANAGEMENT FUNCTION DECLARATION
@@ -63,7 +63,7 @@ struct Node** initializeAdjacencyList(graph highway, node new_node);
  * TODO: Write the data structure for the car list of each station
  * TODO: Write the data structure for the list of station in the highway
  * Implement the main loop of the app, i.e. the part that reads the file and calls the adequate functions [DONE]
- * TODO: Implement aggiungi-stazione: finish buildMaxHeap and initializeAdjacencyList
+ * TODO: Implement aggiungi-stazione: finish initializeAdjacencyList
  * Implement demolisci-stazione [DONE]
  * TODO: Implement aggiungi-auto
  * TODO: Implement rottama-auto
@@ -158,11 +158,7 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
             new_node -> cars = NULL;
         } else {
             // Otherwise build a max heap from the array
-            int* cars = buildMaxHeap(cars_to_add);
-            for(int i = 0; i < new_node->car_number; i++){
-                printf("%d, ", cars[i]);
-            }
-            printf("\n");
+            int* cars = buildMaxHeap(cars_to_add, car_number);
             new_node -> cars = cars;
         }
 
@@ -236,8 +232,36 @@ void findRoute(int source, int destination){
     printf("Found route\n");
 }
 
-//TODO: [IMPL] Implement this
-int* buildMaxHeap(int* array){
+void maxHeapify(int* array, int size, int i){
+    int l = 2 * i + 1;
+    int r = 2 * i + 2;
+    int max = i;
+
+    if (l < size && array[l] > array[max]) {
+        max = l;
+    }
+
+    if (r < size && array[r] > array[max]) {
+        max = r;
+    }
+
+    if (max < size && array[max] > array[i]) {
+        //TODO: [INFO] this condition in the if may be wrong
+        // In case modify it to max != i
+        int temp = array[i];
+        array[i] = array[max];
+        array[max] = temp;
+        maxHeapify(array, size, max);
+    }
+}
+
+int* buildMaxHeap(int* array, int size){
+
+    for(int i = size/2 - 1; i >= 0; i--){
+        //TODO: [INFO] this for may be wrong, in case look at the pseudo-code to fix it (page 48)
+        maxHeapify(array, size, i);
+    }
+
     return array;
 }
 
