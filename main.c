@@ -16,6 +16,7 @@
  */
 struct Node{
     int station_id;
+    int car_number;
     int* cars;
 };
 
@@ -151,9 +152,19 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
         // Create the new node of the graph
         node new_node = (node) malloc(sizeof(node));
         new_node -> station_id = distance;
-        // Make the array a max heap
-        int* cars = buildMaxHeap(cars_to_add);
-        new_node -> cars = cars;
+        new_node -> car_number = car_number;
+        if(car_number == 0){
+            // If the player wants to build a station with 0 cars inside make the list null
+            new_node -> cars = NULL;
+        } else {
+            // Otherwise build a max heap from the array
+            int* cars = buildMaxHeap(cars_to_add);
+            for(int i = 0; i < new_node->car_number; i++){
+                printf("%d, ", cars[i]);
+            }
+            printf("\n");
+            new_node -> cars = cars;
+        }
 
         // Create a new adjacency list for this node
         adjacencyList node_adjacency_list = (adjacencyList) malloc(sizeof(adjacencyList));
