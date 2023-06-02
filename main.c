@@ -50,13 +50,20 @@ void findRoute(int source, int destination);
 void maxHeapify(int* array, int size, int i);
 int* buildMaxHeap(int* array, int size);
 
+/*
+ * SECTION FOR NEW FUNCTIONS
+ */
+int findStation(graph highway, int station);
+void addExitingEdges(graph highway, int list_position);
+
+void addEnteringEdges(graph highway, int list_position);
 
 int main() {
 
     // Declaration and initialization of the graph
     graph highway = (struct Graph*) malloc(sizeof(struct Graph));
     highway -> number_of_nodes = 0;
-    highway -> adjacency_matrix = NULL;
+    highway -> adjacency_matrix = (struct AdjacencyList**) malloc(0);
 
     char command[COMMAND_LENGTH];
 
@@ -124,7 +131,132 @@ int main() {
 }
 
 void addStation(graph highway, int distance, int car_number, int* cars_to_add){
-    printf("Added station\n");
+
+    if(findStation(highway, distance) == -1){
+        // The node does not exist, so add it.
+        // Allocate memory for a new node.
+        node station = (node) malloc(sizeof(struct Node));
+
+        // Initialize the new node.
+        station -> station_id = distance;
+        if(car_number == 0){
+            station -> cars = NULL;
+        } else {
+            int* car_list = buildMaxHeap(cars_to_add, car_number);
+            // Allocate memory for the list of cars and copy the data.
+            station->cars = (int*)malloc(sizeof(int) * car_number);
+            memcpy(station->cars, car_list, sizeof(int) * car_number);
+        }
+        station -> number_of_cars = car_number;
+
+        // Allocate memory for a new adjacency list.
+        adjacency_list list = (adjacency_list) malloc(sizeof(struct AdjacencyList));
+
+        // Initialize the new adjacency list.
+        list -> root = station;
+        list -> edges = NULL;
+        list -> number_of_edges = 0;
+
+        // Add the list to the adjacency matrix.
+        int old_number_of_nodes = highway -> number_of_nodes;
+        // Expand the matrix.
+        highway -> adjacency_matrix = (struct AdjacencyList**) realloc(highway -> adjacency_matrix, (old_number_of_nodes + 1) *
+                                                                                                    sizeof(struct AdjacencyList*));
+
+        // Add the list to the matrix.
+        highway -> adjacency_matrix[old_number_of_nodes] = list;
+
+        // Update the number of nodes.
+        highway -> number_of_nodes++;
+
+        // Calculate the edges that exit from the new node.
+        addExitingEdges(highway, old_number_of_nodes);
+
+        // Calculate the edges that enter the new node.
+        addEnteringEdges(highway, old_number_of_nodes);
+
+        printf("aggiunta\n");
+    } else {
+        // The node already exists, so don't add it.
+        printf("non aggiunta\n");
+    }
+
+}
+
+void addEnteringEdges(graph highway, int list_position) {
+
+    if(highway -> number_of_nodes == 1){
+        // Since there is only one station in the graph (the one we just added), there are not going to be any edges entering that node
+        return;
+    } else {
+        // If there is more than one station in the graph, look if it's possible to create the edge
+        for(int i = 0; i < highway -> number_of_nodes; i++){
+            if(i != list_position){
+                node current_node = highway -> adjacency_matrix[i] -> root;
+                node inserted_node = highway -> adjacency_matrix[list_position] -> root;
+
+                if(current_node -> number_of_cars != 0){
+                    // Calculate the distance between the two stations
+                    int distance = abs(current_node->station_id - inserted_node->station_id);
+                    int max_car_power = current_node -> cars[0];
+                    if(max_car_power >= distance){
+                        adjacency_list current_node_adjacency_list = highway -> adjacency_matrix[i];
+                        if(current_node_adjacency_list -> number_of_edges == 0){
+                            // Add the station using malloc
+                            current_node_adjacency_list -> edges = (int*) malloc(sizeof(int));
+                            current_node_adjacency_list -> edges[0] = inserted_node -> station_id;
+                        } else {
+                            // Add the station using reallocation
+                            current_node_adjacency_list -> edges = (int*) realloc(current_node_adjacency_list -> edges,
+                                                                                   sizeof(int) * (current_node_adjacency_list -> number_of_edges + 1));
+                            current_node_adjacency_list -> edges[current_node_adjacency_list -> number_of_edges] = inserted_node -> station_id;
+                        }
+                        // Update the number of edges in the list
+                        current_node_adjacency_list -> number_of_edges++;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void addExitingEdges(graph highway, int list_position) {
+
+    if(highway -> number_of_nodes == 1){
+        // Since there is only one station in the graph (the one we just added), there are not going to be any edges exiting that node
+        return;
+    } else {
+        // If there is more than one station in the graph, look if it's possible to create the edge
+        for(int i = 0; i < highway -> number_of_nodes; i++){
+            if(i != list_position){
+
+                node current_node = highway -> adjacency_matrix[i] -> root;
+                node inserted_node = highway -> adjacency_matrix[list_position] -> root;
+
+                if(inserted_node -> number_of_cars != 0){
+                    // Calculate the distance between the two stations
+                    int distance = abs(current_node->station_id - inserted_node->station_id);
+                    int max_car_power = inserted_node -> cars[0];
+                    if(max_car_power >= distance){
+                        adjacency_list inserted_node_adjacency_list = highway -> adjacency_matrix[list_position];
+                        if(inserted_node_adjacency_list -> number_of_edges == 0){
+                            // Add the station using malloc
+                            inserted_node_adjacency_list -> edges = (int*) malloc(sizeof(int));
+                            inserted_node_adjacency_list -> edges[0] = current_node -> station_id;
+                        } else {
+                            // Add the station using reallocation
+                            inserted_node_adjacency_list -> edges = (int*) realloc(inserted_node_adjacency_list -> edges,
+                                                                                   sizeof(int) * (inserted_node_adjacency_list -> number_of_edges + 1));
+                            inserted_node_adjacency_list -> edges[inserted_node_adjacency_list -> number_of_edges] = current_node -> station_id;
+                        }
+                        // Update the number of edges in the list
+                        inserted_node_adjacency_list -> number_of_edges++;
+                    }
+                }
+            }
+        }
+    }
+
 }
 
 void removeStation(graph highway, int distance){
@@ -141,6 +273,29 @@ void removeCar(graph highway, int station, int car){
 
 void findRoute(int source, int destination){
     printf("Found route\n");
+}
+
+/*
+ * @returns -1 if the station does not exist, otherwise returns the position in the adjacency_matrix in the graph
+ */
+int findStation(graph highway, int station) {
+    // Get number of nodes of the graph
+    int node_number = highway -> number_of_nodes;
+
+    // If graph is empty return -1
+    if(node_number == 0){
+        return -1;
+    }
+
+    // Otherwise find the station
+    for(int i = 0; i < node_number; i++){
+        if(highway -> adjacency_matrix[i] -> root -> station_id == station){
+            return i;
+        }
+    }
+
+    // If code reaches this point the station does not exist
+    return -1;
 }
 
 void maxHeapify(int* array, int size, int i){
