@@ -16,22 +16,23 @@
  */
 struct Node{
     int station_id;
-    int car_number;
     int* cars;
+    int number_of_cars;
 };
 
 struct AdjacencyList{
     struct Node* root;
-    int* adjacent_nodes;
+    int* edges;
+    int number_of_edges;
 };
 
 struct Graph{
+    struct AdjacencyList** adjacency_matrix;
     int number_of_nodes;
-    struct AdjacencyList** adjacencyLists;
 };
 
 typedef struct Node* node;
-typedef struct AdjacencyList* adjacencyList;
+typedef struct AdjacencyList* adjacency_list;
 typedef struct Graph* graph;
 
 /*
@@ -49,38 +50,13 @@ void findRoute(int source, int destination);
 void maxHeapify(int* array, int size, int i);
 int* buildMaxHeap(int* array, int size);
 
-/*
- * SECTION FOR GRAPH GENERAL MANAGEMENT FUNCTION DECLARATION
- */
-
-/*
- * SECTION FOR GRAPH SPECIFIC OPERATIONS
- */
-int findStation(graph highway, int station);
-int findCar(node station, int car);
-int* initializeAdjacencyList(graph highway, node new_node);
-graph recalculateEdges(graph highway);
-graph removeStationFromAdjacencyLists(graph highway, int station);
-
-/*
- * SECTION FOR TODOS:
- * TODO: Write the data structure for the car list of each station
- * TODO: Write the data structure for the list of station in the highway
- * Implement the main loop of the app, i.e. the part that reads the file and calls the adequate functions [DONE]
- * TODO: Implement aggiungi-stazione: finish initializeAdjacencyList
- * Implement demolisci-stazione [DONE]
- * Implement aggiungi-auto [DONE]
- * Implement rottama-auto [DONE]
- * TODO: Implement pianifica-percorso
- *
- */
 
 int main() {
 
     // Declaration and initialization of the graph
     graph highway = (struct Graph*) malloc(sizeof(struct Graph));
     highway -> number_of_nodes = 0;
-    highway -> adjacencyLists = NULL;
+    highway -> adjacency_matrix = NULL;
 
     char command[COMMAND_LENGTH];
 
@@ -148,176 +124,21 @@ int main() {
 }
 
 void addStation(graph highway, int distance, int car_number, int* cars_to_add){
-
-    // Check if the station is present
-    if(findStation(highway, distance) == -1){
-        //If the station is not present add the station
-
-        // Create the new node of the graph
-        node new_node = (node) malloc(sizeof(struct Node));
-        new_node->cars = (int*) malloc(car_number * sizeof(int));
-
-        new_node -> station_id = distance;
-        new_node -> car_number = car_number;
-        if(car_number == 0){
-            // If the player wants to build a station with 0 cars inside make the list null
-            new_node -> cars = NULL;
-        } else {
-            // Otherwise build a max heap from the array
-            int* cars = buildMaxHeap(cars_to_add, car_number);
-            new_node -> cars = cars;
-        }
-
-        // Create a new adjacency list for this node
-        adjacencyList node_adjacency_list = (adjacencyList) malloc(sizeof(struct AdjacencyList));
-        node_adjacency_list -> root = new_node;
-
-        // Add the adjacency list to the graph
-        if(highway -> number_of_nodes == 0){
-            // Initialize the list
-            node_adjacency_list -> adjacent_nodes = NULL;
-            // If the graph has no elements add the list using malloc
-            highway -> adjacencyLists = (struct AdjacencyList**) malloc(sizeof(adjacencyList));
-            highway -> adjacencyLists[0] = node_adjacency_list;
-        } else {
-            // Initialize the list: create the edges that are exiting the new node, but only do it if this station has cars
-            if(car_number != 0){
-                node_adjacency_list -> adjacent_nodes = initializeAdjacencyList(highway, new_node);
-            }
-            // If the graph has already at least one element add the list using reallocate
-            highway -> adjacencyLists = (struct AdjacencyList**) realloc(highway -> adjacencyLists,(highway->number_of_nodes + 1) * sizeof(struct AdjacencyList*));
-            highway -> adjacencyLists[highway -> number_of_nodes] = node_adjacency_list;
-            // Modify the adjacency lists of the other nodes of the graph: create the edges that are entering the new node
-            highway = recalculateEdges(highway);
-        }
-        highway -> number_of_nodes++;
-
-        printf("aggiunta\n");
-    } else {
-        // If the station is already present don't add it and return
-        printf("non aggiunta\n");
-    }
-
+    printf("Added station\n");
 }
 
 void removeStation(graph highway, int distance){
-
-    // Check if the station is present
-    int position = findStation(highway, distance);
-    if(position == -1){
-        // If the station is not present print the message and return
-        printf("non demolita\n");
-    } else {
-        // If the station is present, start deleting the things from the structure
-        // Free the adjacency list of the station
-        free(highway -> adjacencyLists[position] -> adjacent_nodes);
-        free(highway -> adjacencyLists[position]);
-
-        // Shift the remaining elements in the adjacencyLists array to fill the gap left by the removed adjacency list
-        for (int i = position; i < highway -> number_of_nodes - 1; i++) {
-            highway -> adjacencyLists[i] = highway -> adjacencyLists[i + 1];
-        }
-
-        // Update the number_of_nodes field of the Graph structure
-        highway -> number_of_nodes--;
-
-        // Resize the adjacencyLists array to reflect the updated number_of_nodes
-        highway -> adjacencyLists = (struct AdjacencyList**)realloc(highway -> adjacencyLists, highway -> number_of_nodes * sizeof(struct AdjacencyList*));
-
-        // Remove the station from the adjacency lists of the other stations
-        highway = removeStationFromAdjacencyLists(highway, distance);
-
-        printf("demolita\n");
-    }
-
+    printf("Removed station\n");
 }
 
 void addCar(graph highway, int station, int car_power){
-
-    // Check if the station exists
-    int position = findStation(highway, station);
-    if(position == -1){
-        // The station does not exist, so don't add the car
-        printf("non aggiunta\n");
-    } else {
-        // The station exists, so check if the car exists in that station
-
-        // Find the adjacency list where the root is the station
-        int list_position = 0;
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            if(highway -> adjacencyLists[i] -> root -> station_id == station){
-                list_position = i;
-                break;
-            }
-        }
-
-        int car_position = findCar(highway -> adjacencyLists[list_position] -> root, car_power);
-        if(car_position == -1){
-            // The car is not present in the list, so add it to the list
-            int* cars = highway -> adjacencyLists[list_position] -> root -> cars;
-            cars = (int*) realloc(cars, (highway -> adjacencyLists[list_position] -> root -> car_number + 1) * sizeof(int));
-            cars[highway -> adjacencyLists[list_position] -> root -> car_number] = car_power;
-            highway->adjacencyLists[list_position]->root->cars = cars;
-
-            // Update the car number in the station
-            highway -> adjacencyLists[list_position] -> root -> car_number++;
-
-            //Modify graph's edges and change the edges exiting from the modified node
-            highway -> adjacencyLists[list_position] -> adjacent_nodes = initializeAdjacencyList(highway, highway -> adjacencyLists[list_position] -> root);
-
-            printf("aggiunta\n");
-        } else {
-            // The car is already present so don't add it and return
-            printf("non aggiunta\n");
-        }
-    }
-
+    printf("Added car\n");
 }
 
 void removeCar(graph highway, int station, int car){
-
-    // Check that the station exists
-    if(findStation(highway, station) == -1){
-        printf("non rottamata\n");
-    } else {
-        // Check if the car exists in the station
-        // Find the adjacency list where the root is the station
-        int list_position = 0;
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            if(highway -> adjacencyLists[i] -> root -> station_id == station){
-                list_position = i;
-                break;
-            }
-        }
-
-        int car_position = findCar(highway -> adjacencyLists[list_position] -> root, car);
-        if(car_position == -1){
-            printf("non rottamata\n");
-        } else {
-
-            // Remove the car from the array of cars
-            // Shift the remaining elements in the cars array to fill the gap left by the removed car
-            int* cars = highway -> adjacencyLists[list_position] -> root -> cars;
-            for(int i = car_position; i < highway -> adjacencyLists[list_position] -> root -> car_number - 1; i++){
-                cars[i] = cars[i + 1];
-            }
-            // Update the car number in the station
-            highway -> adjacencyLists[list_position] -> root -> car_number--;
-            // Resize the cars array to reflect the updated car_number
-            cars = (int*) malloc(highway -> adjacencyLists[list_position] -> root -> car_number * sizeof(int));
-            memccpy(cars, highway -> adjacencyLists[list_position] -> root -> cars, highway -> adjacencyLists[list_position] -> root -> car_number * sizeof(int), sizeof(int));
-            highway -> adjacencyLists[list_position] -> root -> cars = cars;
-            // Modify graph's edges and change the edges exiting from the modified node
-            highway -> adjacencyLists[list_position] -> adjacent_nodes = initializeAdjacencyList(highway, highway -> adjacencyLists[list_position] -> root);
-
-            printf("rottamata\n");
-
-        }
-    }
-
+    printf("Removed car\n");
 }
 
-//TODO: [IMPL] Implement this
 void findRoute(int source, int destination){
     printf("Found route\n");
 }
@@ -348,67 +169,9 @@ void maxHeapify(int* array, int size, int i){
 int* buildMaxHeap(int* array, int size){
 
     for(int i = size/2 - 1; i >= 0; i--){
-        //TODO: [INFO] this for may be wrong, in case look at the pseudo-code to fix it (page 48)
         maxHeapify(array, size, i);
     }
 
     return array;
-}
-
-/*
- * @returns -1 if the station is not present in the graph, otherwise returns the position of the station in the struct
- */
-int findStation(graph highway, int station){
-
-    // If the graph is empty return false
-    if(highway -> number_of_nodes == 0){
-        return -1;
-    }
-
-    // Otherwise look for the station
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        adjacencyList currentList = highway -> adjacencyLists[i];
-        if(currentList -> root -> station_id == station){
-            return i;
-        }
-    }
-
-    // If the program arrives here it means that the station does not exist
-    return -1;
-}
-
-/*
- * @returns -1 if the car is not present in the station, otherwise returns the position of the car in the struct
- */
-int findCar(node station, int car){
-    // If there are no cars in the station return false
-    if(station -> car_number == 0){
-        return -1;
-    }
-
-    // Otherwise try to find the car
-    for(int i = 0; i < station -> car_number; i++){
-        if(station -> cars[i] == car){
-            return i;
-        }
-    }
-
-    // If the code arrives here there it means that the car has not been found in the station
-    return -1;
-}
-
-//TODO: [IMPL] Implement this
-int* initializeAdjacencyList(graph highway, node new_node){
-    return NULL;
-}
-
-//TODO: [IMPL] Implement this
-graph recalculateEdges(graph highway){
-    return highway;
-}
-
-//TODO: [IMPL] Implement this
-graph removeStationFromAdjacencyLists(graph highway, int station){
-    return highway;
 }
 
