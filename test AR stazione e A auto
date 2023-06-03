@@ -1,0 +1,17 @@
+aggiungi-stazione 20 3 5 10 15
+aggiungi-stazione 4 3 1 2 3
+aggiungi-stazione 30 0
+aggiungi-stazione 30 5 9 8 7 6 5
+demolisci-stazione 3
+aggiungi-auto 4 5
+aggiungi-auto 4 5
+demolisci-stazione 4
+aggiungi-stazione 35 3 20 25 7
+aggiungi-auto 35 19
+aggiungi-auto 35 19
+aggiungi-auto 35 25
+aggiungi-auto 35 100
+aggiungi-auto 30 1000
+aggiungi-stazione 8000 0
+aggiungi-auto 8000 7970
+aggiungi-auto 20 10000
