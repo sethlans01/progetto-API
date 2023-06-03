@@ -58,6 +58,8 @@ void addExitingEdges(graph highway, int list_position);
 
 void addEnteringEdges(graph highway, int list_position);
 
+void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station);
+
 int main() {
 
     // Declaration and initialization of the graph
@@ -260,7 +262,78 @@ void addExitingEdges(graph highway, int list_position) {
 }
 
 void removeStation(graph highway, int distance){
-    printf("Removed station\n");
+
+    // Check if the station exists
+    int station_position = findStation(highway, distance);
+    if(station_position == -1){
+        // The station does not exist
+        printf("non demolita\n");
+        return;
+    } else {
+        // The station exists, so remove it
+        // Deallocate the array of cars from the node
+        free(highway -> adjacency_matrix[station_position] -> root -> cars);
+
+        // Deallocate the node
+        free(highway -> adjacency_matrix[station_position] -> root);
+
+        // Deallocate the array of the edges
+        free(highway -> adjacency_matrix[station_position] -> edges);
+
+        // Deallocate the adjacency list
+        free(highway -> adjacency_matrix[station_position]);
+
+        // Shift the array of the adjacency matrix
+        for(int i = station_position; i < highway -> number_of_nodes - 1; i++){
+            highway -> adjacency_matrix[i] = highway -> adjacency_matrix[i + 1];
+        }
+
+        // Update the number of nodes in the graph
+        highway -> number_of_nodes--;
+
+        // Resize the adjacency matrix
+        highway -> adjacency_matrix = (adjacency_list*) realloc(highway -> adjacency_matrix, sizeof(adjacency_list) * highway -> number_of_nodes);
+
+        // Update the edges
+        for(int i = 0; i < highway -> number_of_nodes; i++){
+            removeExitingEdges(highway, i, distance);
+        }
+
+        printf("demolita\n");
+
+    }
+
+}
+
+void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station) {
+    // Get the edges array of the node
+    int* edges = highway -> adjacency_matrix[nodeToRemoveFrom] -> edges;
+
+    // Find the position of the deleted station in the edges array
+    int deleted_station_position = -1;
+    for(int i = 0; i < highway -> adjacency_matrix[nodeToRemoveFrom] -> number_of_edges; i++){
+        if(edges[i] == deleted_station){
+            deleted_station_position = i;
+            break;
+        }
+    }
+
+    // If the deleted station is not in the edges array, return
+    if(deleted_station_position == -1){
+        return;
+    }
+
+    // Shift the array
+    for(int i = deleted_station_position; i < highway -> adjacency_matrix[nodeToRemoveFrom] -> number_of_edges - 1; i++){
+        edges[i] = edges[i + 1];
+    }
+
+    // Update the number of edges
+    highway -> adjacency_matrix[nodeToRemoveFrom] -> number_of_edges--;
+
+    // Resize the array
+    highway -> adjacency_matrix[nodeToRemoveFrom] -> edges = (int*) realloc(highway -> adjacency_matrix[nodeToRemoveFrom] -> edges,
+                                                                           sizeof(int) * highway -> adjacency_matrix[nodeToRemoveFrom] -> number_of_edges);
 }
 
 void addCar(graph highway, int station, int car_power){
