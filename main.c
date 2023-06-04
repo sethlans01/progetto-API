@@ -29,6 +29,8 @@ struct AdjacencyList{
 struct Graph{
     struct AdjacencyList** adjacency_matrix;
     int number_of_nodes;
+    int max_distance;
+    int min_distance;
 };
 
 typedef struct Node* node;
@@ -66,6 +68,8 @@ int main() {
     graph highway = (struct Graph*) malloc(sizeof(struct Graph));
     highway -> number_of_nodes = 0;
     highway -> adjacency_matrix = (struct AdjacencyList**) malloc(0);
+    highway -> max_distance = 0;
+    highway -> min_distance = 0;
 
     char command[COMMAND_LENGTH];
 
@@ -136,6 +140,15 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
 
     if(findStation(highway, distance) == -1){
         // The node does not exist, so add it.
+
+        // Check if the distance is the new max or min distance.
+        if(distance > highway -> max_distance){
+            highway -> max_distance = distance;
+        }
+        if(highway -> min_distance == 0 || distance < highway -> min_distance){
+            highway -> min_distance = distance;
+        }
+
         // Allocate memory for a new node.
         node station = (node) malloc(sizeof(struct Node));
 
@@ -297,6 +310,28 @@ void removeStation(graph highway, int distance){
         // Update the edges
         for(int i = 0; i < highway -> number_of_nodes; i++){
             removeExitingEdges(highway, i, distance);
+        }
+
+
+        // Check if the station corresponds to the maximum distance or the minimum distance
+        if(distance == highway -> max_distance){
+            // The station corresponds to the maximum distance, so update the maximum distance
+            // Find the new maximum distance
+            highway -> max_distance = 0;
+            for(int i = 0; i < highway -> number_of_nodes; i++){
+                if(highway -> adjacency_matrix[i] -> root -> station_id > highway -> max_distance){
+                    highway -> max_distance = highway -> adjacency_matrix[i] -> root -> station_id;
+                }
+            }
+        } else if(distance == highway -> min_distance){
+            // The station corresponds to the minimum distance, so update the minimum distance
+            // Find the new minimum distance
+            highway -> min_distance = highway -> max_distance;
+            for(int i = 0; i < highway -> number_of_nodes; i++){
+                if(highway -> adjacency_matrix[i] -> root -> station_id < highway -> min_distance){
+                    highway -> min_distance = highway -> adjacency_matrix[i] -> root -> station_id;
+                }
+            }
         }
 
         printf("demolita\n");

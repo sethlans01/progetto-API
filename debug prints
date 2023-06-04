@@ -25,3 +25,7 @@
                 printf("\n");
             }
         }
+
+        //TODO: [RMV] Print max and min distance of the highway
+        printf("Max distance: %d\n", highway -> max_distance);
+        printf("Min distance: %d\n", highway -> min_distance);
