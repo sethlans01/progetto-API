@@ -63,6 +63,7 @@ void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station
 void expandEdges(graph highway, int station_to_update, int added_car);
 
 int main() {
+    int exit = 0;
 
     // Declaration and initialization of the graph
     graph highway = (struct Graph*) malloc(sizeof(struct Graph));
@@ -82,12 +83,12 @@ int main() {
             int cars_to_add[MAX_CARS];
             int number_of_cars = 0;
             char line_to_read[MAX_INPUT];
-            scanf("%d", &distance);
-            scanf("%d", &car_number);
+            if(scanf("%d", &distance) == EOF) exit = 1;
+            if(scanf("%d", &car_number) == EOF) exit = 1;
 
             // Read the car list
             // Read the rest of the line from stdin
-            fgets(line_to_read, MAX_INPUT, stdin);
+            if(fgets(line_to_read, MAX_INPUT, stdin) == NULL) exit = 1;
             // Read the first integer from the string read
             char* number = strtok(line_to_read, " ");
             for(int i = 0; i < car_number; i++){
@@ -102,34 +103,39 @@ int main() {
             addStation(highway, distance, car_number, cars_to_add);
         } else if (strcmp(command, REMOVE_STATION) == 0){
             int distance;
-            scanf("%d", &distance);
+            if(scanf("%d", &distance) == EOF) exit = 1;
 
             // Call the function to delete a station
             removeStation(highway, distance);
         } else if (strcmp(command, NEW_CAR) == 0){
             int station;
             int car_power;
-            scanf("%d", &station);
-            scanf("%d", &car_power);
+            if(scanf("%d", &station) == EOF) exit = 1;
+            if(scanf("%d", &car_power) == EOF) exit = 1;
 
             // Call the function to add a car to the data structure
             addCar(highway, station, car_power);
         } else if (strcmp(command, DESTROY_CAR) == 0){
             int station;
             int car;
-            scanf("%d", &station);
-            scanf("%d", &car);
+            if(scanf("%d", &station) == EOF) exit = 1;
+            if(scanf("%d", &car) == EOF) exit = 1;
 
             // Call the function to remove the car from the data structure
             removeCar(highway, station, car);
         } else if (strcmp(command, FIND_ROUTE) == 0){
             int source;
             int destination;
-            scanf("%d", &source);
-            scanf("%d", &destination);
+            if(scanf("%d", &source) == EOF) exit = 1;
+            if(scanf("%d", &destination) == EOF) exit = 1;
 
             // Call the function that calculates the route
             findRoute(source, destination);
+        }
+
+        // If arrived at the end of the file terminate the program
+        if(exit == 1){
+            break;
         }
     }
 
