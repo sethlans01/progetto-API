@@ -389,21 +389,6 @@ void addCar(graph highway, int station, int car_power){
 
 }
 
-void expandEdges(graph highway, int station_to_update, int added_car) {
-
-    // Check if the added car has a power greater than the existing maximum in the station
-    if(added_car > highway -> adjacency_matrix[station_to_update] -> root -> cars[0]){
-        // Delete the list of cars in the station
-        free(highway -> adjacency_matrix[station_to_update] -> root -> cars);
-        highway -> adjacency_matrix[station_to_update] -> root -> cars = NULL;
-        // Update the number of cars in the station
-        highway -> adjacency_matrix[station_to_update] -> root -> number_of_cars = 0;
-        // Recalculate the edges
-        addExitingEdges(highway, station_to_update);
-    }
-
-}
-
 void removeCar(graph highway, int station, int car){
     printf("Removed car\n");
 }
