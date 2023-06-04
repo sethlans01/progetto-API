@@ -177,34 +177,6 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
         // Calculate the edges that enter the new node.
         addEnteringEdges(highway, old_number_of_nodes);
 
-        //TODO: [RMV] Print the matrix with the car list
-        printf("Matrix with car list:\n");
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-            if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-                printf("No cars\n");
-            } else {
-                for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                    printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-                }
-                printf("\n");
-            }
-        }
-
-        //TODO: [RMV] Print the matrix with the exiting edges
-        printf("Matrix with exiting edges:\n");
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-            if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-                printf("No exiting edges\n");
-            } else {
-                for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                    printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-                }
-                printf("\n");
-            }
-        }
-
         printf("aggiunta\n");
     } else {
         // The node already exists, so don't add it.
@@ -327,34 +299,6 @@ void removeStation(graph highway, int distance){
             removeExitingEdges(highway, i, distance);
         }
 
-        //TODO: [RMV] Print the matrix with the car list
-        printf("Matrix with car list:\n");
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-            if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-                printf("No cars\n");
-            } else {
-                for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                    printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-                }
-                printf("\n");
-            }
-        }
-
-        //TODO: [RMV] Print the matrix with the exiting edges
-        printf("Matrix with exiting edges:\n");
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-            if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-                printf("No exiting edges\n");
-            } else {
-                for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                    printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-                }
-                printf("\n");
-            }
-        }
-
         printf("demolita\n");
 
     }
@@ -394,6 +338,9 @@ void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station
 
 void addCar(graph highway, int station, int car_power){
 
+    int hasToUpdateEdges = 0;
+    int hasToDeleteEdgesList = 0;
+
     // Check if the station exists
     int station_position = findStation(highway, station);
     if(station_position == -1){
@@ -404,10 +351,17 @@ void addCar(graph highway, int station, int car_power){
         // The station exists, so add the car
         node current_node = highway -> adjacency_matrix[station_position] -> root;
         if(current_node -> number_of_cars == 0){
+            // The station is empty, so update the edges
+            hasToUpdateEdges = 1;
             // Add the car using malloc
             current_node -> cars = (int*) malloc(sizeof(int));
             current_node -> cars[0] = car_power;
         } else {
+            if(car_power > highway -> adjacency_matrix[station_position] -> root -> cars[0]){
+                // The car is more powerful, so update the edges
+                hasToDeleteEdgesList = 1;
+                hasToUpdateEdges = 1;
+            }
             // Add the car using reallocation
             current_node -> cars = (int*) realloc(current_node -> cars, sizeof(int) * (current_node -> number_of_cars + 1));
             current_node -> cars[current_node -> number_of_cars] = car_power;
@@ -420,34 +374,14 @@ void addCar(graph highway, int station, int car_power){
         current_node -> cars = new_cars;
 
         // Update the edges
-        expandEdges(highway, station_position, car_power);
-
-        //TODO: [RMV] Print the matrix with the car list
-        printf("Matrix with car list:\n");
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-            if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-                printf("No cars\n");
-            } else {
-                for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                    printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-                }
-                printf("\n");
+        if(hasToUpdateEdges){
+            if(hasToDeleteEdgesList){
+                // Delete the edges list
+                free(highway -> adjacency_matrix[station_position] -> edges);
+                highway -> adjacency_matrix[station_position] -> edges = NULL;
+                highway -> adjacency_matrix[station_position] -> number_of_edges = 0;
             }
-        }
-
-        //TODO: [RMV] Print the matrix with the exiting edges
-        printf("Matrix with exiting edges:\n");
-        for(int i = 0; i < highway -> number_of_nodes; i++){
-            printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-            if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-                printf("No exiting edges\n");
-            } else {
-                for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                    printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-                }
-                printf("\n");
-            }
+            addExitingEdges(highway, station_position);
         }
 
         printf("aggiunta\n");
@@ -455,8 +389,19 @@ void addCar(graph highway, int station, int car_power){
 
 }
 
-// TODO: IMPLEMENT DIS
 void expandEdges(graph highway, int station_to_update, int added_car) {
+
+    // Check if the added car has a power greater than the existing maximum in the station
+    if(added_car > highway -> adjacency_matrix[station_to_update] -> root -> cars[0]){
+        // Delete the list of cars in the station
+        free(highway -> adjacency_matrix[station_to_update] -> root -> cars);
+        highway -> adjacency_matrix[station_to_update] -> root -> cars = NULL;
+        // Update the number of cars in the station
+        highway -> adjacency_matrix[station_to_update] -> root -> number_of_cars = 0;
+        // Recalculate the edges
+        addExitingEdges(highway, station_to_update);
+    }
+
 }
 
 void removeCar(graph highway, int station, int car){
