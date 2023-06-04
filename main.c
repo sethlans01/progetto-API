@@ -425,7 +425,75 @@ void addCar(graph highway, int station, int car_power){
 }
 
 void removeCar(graph highway, int station, int car){
-    printf("Removed car\n");
+
+    // Check if the station exists
+    int station_position = findStation(highway, station);
+    if(station_position == -1){
+        // The station does not exist
+        printf("non rottamata\n");
+        return;
+    } else {
+        // The station exists, so check if the car exists in the station
+        //If the station has 0 cars, return
+        if(highway -> adjacency_matrix[station_position] -> root -> number_of_cars == 0){
+            printf("non rottamata\n");
+            return;
+        }
+
+        // Find the position of the car in the cars array
+        node current_node = highway -> adjacency_matrix[station_position] -> root;
+        int car_position = -1;
+        for(int i = 0; i < current_node -> number_of_cars; i++){
+            if(current_node -> cars[i] == car){
+                car_position = i;
+                break;
+            }
+        }
+
+        // If the car is not in the cars array, return
+        if(car_position == -1){
+            printf("non rottamata\n");
+            return;
+        }
+
+        // Otherwise remove the car
+        // Shift the array
+        for(int i = car_position; i < current_node -> number_of_cars - 1; i++){
+            current_node -> cars[i] = current_node -> cars[i + 1];
+        }
+        // Update the number of cars
+        current_node -> number_of_cars--;
+        // Resize the array
+        current_node -> cars = (int*) realloc(current_node -> cars, sizeof(int) * current_node -> number_of_cars);
+        // Build max heap
+        int* new_cars = buildMaxHeap(current_node -> cars, current_node -> number_of_cars);
+        current_node -> cars = new_cars;
+
+        // Update the edges
+        if(current_node -> number_of_cars == 0){
+            // Delete the edges list
+            free(highway -> adjacency_matrix[station_position] -> edges);
+            highway -> adjacency_matrix[station_position] -> edges = NULL;
+            highway -> adjacency_matrix[station_position] -> number_of_edges = 0;
+        } else {
+            // Update the edges, if possible
+            // If the deleted car was the most powerful, update the edges
+            if(car_position == 0){
+                // Update the edges if possible
+                // If the new max power car is smaller that the difference between the max distance and the min distance, update the edges
+                if(current_node -> cars[0] < (highway -> max_distance - highway -> min_distance)){
+                    // Update the edges
+                    free(highway -> adjacency_matrix[station_position] -> edges);
+                    highway -> adjacency_matrix[station_position] -> edges = NULL;
+                    highway -> adjacency_matrix[station_position] -> number_of_edges = 0;
+                    addExitingEdges(highway, station_position);
+                }
+            }
+        }
+
+    }
+
+    printf("rottamata\n");
 }
 
 void findRoute(int source, int destination){
