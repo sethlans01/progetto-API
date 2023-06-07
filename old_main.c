@@ -50,7 +50,7 @@ void findRoute(int source, int destination);
  * SECTION FOR MAX-HEAP GENERAL MANAGEMENT FUNCTION DECLARATION
  */
 void maxHeapify(int* array, int size, int i);
-void buildMaxHeap(int* array, int size);
+int* buildMaxHeap(int* array, int size);
 
 /*
  * SECTION FOR NEW FUNCTIONS
@@ -160,12 +160,13 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
 
         // Initialize the new node.
         station -> station_id = distance;
-        if(car_number != 0){
-            // Assign the array of cars to the node and build the max heap.
-            station -> cars = (int*) malloc(MAX_CARS * sizeof(int));
-            buildMaxHeap(cars_to_add, car_number);
-            memcpy(station -> cars, cars_to_add, car_number * sizeof(int));
-
+        if(car_number == 0){
+            station -> cars = NULL;
+        } else {
+            int* car_list = buildMaxHeap(cars_to_add, car_number);
+            // Allocate memory for the list of cars and copy the data.
+            station->cars = (int*)malloc(sizeof(int) * car_number);
+            memcpy(station->cars, car_list, sizeof(int) * car_number);
         }
         station -> number_of_cars = car_number;
 
@@ -201,39 +202,6 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
         printf("non aggiunta\n");
     }
 
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
-
 }
 
 void addEnteringEdges(graph highway, int list_position) {
@@ -261,7 +229,7 @@ void addEnteringEdges(graph highway, int list_position) {
                         } else {
                             // Add the station using reallocation
                             current_node_adjacency_list -> edges = (int*) realloc(current_node_adjacency_list -> edges,
-                                                                                   sizeof(int) * (current_node_adjacency_list -> number_of_edges + 1));
+                                                                                  sizeof(int) * (current_node_adjacency_list -> number_of_edges + 1));
                             current_node_adjacency_list -> edges[current_node_adjacency_list -> number_of_edges] = inserted_node -> station_id;
                         }
                         // Update the number of edges in the list
@@ -376,39 +344,6 @@ void removeStation(graph highway, int distance){
 
     }
 
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
-
 }
 
 void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station) {
@@ -439,7 +374,7 @@ void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station
 
     // Resize the array
     highway -> adjacency_matrix[nodeToRemoveFrom] -> edges = (int*) realloc(highway -> adjacency_matrix[nodeToRemoveFrom] -> edges,
-                                                                           sizeof(int) * highway -> adjacency_matrix[nodeToRemoveFrom] -> number_of_edges);
+                                                                            sizeof(int) * highway -> adjacency_matrix[nodeToRemoveFrom] -> number_of_edges);
 }
 
 void addCar(graph highway, int station, int car_power){
@@ -457,24 +392,27 @@ void addCar(graph highway, int station, int car_power){
         // The station exists, so add the car
         node current_node = highway -> adjacency_matrix[station_position] -> root;
         if(current_node -> number_of_cars == 0){
-            // Allocate memory for the cars array
-            current_node -> cars = (int*) malloc(MAX_CARS * sizeof(int));
             // The station is empty, so update the edges
             hasToUpdateEdges = 1;
+            // Add the car using malloc
+            current_node -> cars = (int*) malloc(sizeof(int));
+            current_node -> cars[0] = car_power;
         } else {
             if(car_power > highway -> adjacency_matrix[station_position] -> root -> cars[0]){
                 // The car is more powerful, so update the edges
                 hasToDeleteEdgesList = 1;
                 hasToUpdateEdges = 1;
             }
+            // Add the car using reallocation
+            current_node -> cars = (int*) realloc(current_node -> cars, sizeof(int) * (current_node -> number_of_cars + 1));
+            current_node -> cars[current_node -> number_of_cars] = car_power;
         }
-        // Add the car
-        current_node -> cars[current_node -> number_of_cars] = car_power;
         // Update the number of cars in the node
         current_node -> number_of_cars++;
 
         // Build max heap
-        buildMaxHeap(current_node -> cars, current_node -> number_of_cars);
+        int* new_cars = buildMaxHeap(current_node -> cars, current_node -> number_of_cars);
+        current_node -> cars = new_cars;
 
         // Update the edges
         if(hasToUpdateEdges){
@@ -489,39 +427,6 @@ void addCar(graph highway, int station, int car_power){
 
         printf("aggiunta\n");
     }
-
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
 
 }
 
@@ -558,13 +463,17 @@ void removeCar(graph highway, int station, int car){
         }
 
         // Otherwise remove the car
-        // Copy the last car in the position of the car to delete
-        current_node -> cars[car_position] = current_node -> cars[current_node -> number_of_cars - 1];
+        // Shift the array
+        for(int i = car_position; i < current_node -> number_of_cars - 1; i++){
+            current_node -> cars[i] = current_node -> cars[i + 1];
+        }
         // Update the number of cars
         current_node -> number_of_cars--;
-        // Put a 0 instead of the last car
-        current_node -> cars[current_node -> number_of_cars] = 0;
-        buildMaxHeap(current_node -> cars, current_node -> number_of_cars);
+        // Resize the array
+        current_node -> cars = (int*) realloc(current_node -> cars, sizeof(int) * current_node -> number_of_cars);
+        // Build max heap
+        int* new_cars = buildMaxHeap(current_node -> cars, current_node -> number_of_cars);
+        current_node -> cars = new_cars;
 
         // Update the edges
         if(current_node -> number_of_cars == 0){
@@ -591,39 +500,6 @@ void removeCar(graph highway, int station, int car){
     }
 
     printf("rottamata\n");
-
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
 }
 
 void findRoute(int source, int destination){
@@ -676,11 +552,12 @@ void maxHeapify(int* array, int size, int i){
     }
 }
 
-void buildMaxHeap(int* array, int size){
+int* buildMaxHeap(int* array, int size){
 
     for(int i = size/2 - 1; i >= 0; i--){
         maxHeapify(array, size, i);
     }
 
+    return array;
 }
 
