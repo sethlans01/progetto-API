@@ -201,39 +201,6 @@ void addStation(graph highway, int distance, int car_number, int* cars_to_add){
         printf("non aggiunta\n");
     }
 
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
-
 }
 
 void addEnteringEdges(graph highway, int list_position) {
@@ -376,39 +343,6 @@ void removeStation(graph highway, int distance){
 
     }
 
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
-
 }
 
 void removeExitingEdges(graph highway, int nodeToRemoveFrom, int deleted_station) {
@@ -490,39 +424,6 @@ void addCar(graph highway, int station, int car_power){
         printf("aggiunta\n");
     }
 
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
-
 }
 
 void removeCar(graph highway, int station, int car){
@@ -591,39 +492,6 @@ void removeCar(graph highway, int station, int car){
     }
 
     printf("rottamata\n");
-
-    //TODO: [RMV] Print the matrix with the car list
-    printf("Matrix with car list:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> root -> number_of_cars == 0){
-            printf("No cars\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> root -> number_of_cars; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> root -> cars[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print the matrix with the exiting edges
-    printf("Matrix with exiting edges:\n");
-    for(int i = 0; i < highway -> number_of_nodes; i++){
-        printf("Node %d: ", highway -> adjacency_matrix[i] -> root -> station_id);
-        if(highway -> adjacency_matrix[i] -> number_of_edges == 0){
-            printf("No exiting edges\n");
-        } else {
-            for(int j = 0; j < highway -> adjacency_matrix[i] -> number_of_edges; j++){
-                printf("%d ", highway -> adjacency_matrix[i] -> edges[j]);
-            }
-            printf("\n");
-        }
-    }
-
-    //TODO: [RMV] Print max and min distance of the highway
-    printf("Max distance: %d\n", highway -> max_distance);
-    printf("Min distance: %d\n", highway -> min_distance);
-
 }
 
 void findRoute(int source, int destination){
