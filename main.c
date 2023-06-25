@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 
 #define COMMAND_LENGTH 18
 #define MAX_CARS 512
@@ -40,17 +41,12 @@ void removeCar(int station, int car);
 void findRoute(int source, int destination);
 
 // Red-Black Tree management functions
-Node* newRBNode(int stationID, short carNumber, const int *cars, int maxPower);
-Node* RBMinimum(Node* x);
-Node* RBSuccessor(Node* x);
-Node* locateNode(Node** T, int stationID);
-char isPresent(Node** T, int stationID);
-void rotateLeft(Node** T, Node* x);
-void rotateRight(Node** T, Node* y);
-void RBInsertFixup(Node** T, Node* z);
-void RBInsert(Node** T, int stationID, short carNumber, const int *cars, int maxPower);
-void RBDeleteFixup(Node** T, Node* x);
-void RBDelete(Node** T, Node* z);
+Node* newNode(int stationID, short carNumber, int cars[], int maxPower);
+void RBInsert(RBTree T, int stationID, short carNumber, int cars[], int maxPower);
+void RBInsertFixup(RBTree T, Node* z);
+void RBLeftRotate(RBTree T, Node* x);
+void RBPrint(Node* x);
+void RBRightRotate(RBTree T, Node* x);
 
 // Global variables
 RBTree highway;
@@ -134,359 +130,164 @@ int main() {
         }
     }
 
-    printf("FINE\n");
-
     return 0;
 }
 
 void addStation(int station, short car_number, int *cars_to_add, int maxPower){
-    char result;
-    result = isPresent(highway, station);
-    if(result == '0'){ // Station is not present, so add it
-        RBInsert(highway, station, car_number, cars_to_add, maxPower);
-        printf("aggiunta\n");
-    } else {
-        // Station is present, so don't add it
-        printf("non aggiunta\n");
-    }
 }
 
 void removeStation(int station){
-    Node* result;
-    result = locateNode(highway, station);
-    if(result == NULL){
-        // The station is not present, so don't remove it
-        printf("non demolita\n");
-    } else {
-        // The station is present, so remove it
-        RBDelete(highway, result);
-        printf("demolita\n");
-    }
+
 }
 
 void addCar(int station, int car){
-    Node* result;
-    result = locateNode(highway, station);
-    if(result == NULL){
-        // The station is not present, so don't add the car
-        printf("non aggiunta\n");
-    } else {
-        // The station is present, so try to add it
-        if(result->carNumber == MAX_CARS){
-            // The car parking lot is full, so don't add the new car
-            printf("non aggiunta\n");
-        } else {
-            result->cars[result->carNumber] = car;
-            (result->carNumber)++;
-            if(car > result->maxPower){
-                result->maxPower = car;
-            }
-            printf("aggiunta\n");
-        }
-    }
+
 }
 
 void removeCar(int station, int car){
-    Node* result;
-    result = locateNode(highway, station);
-    if(result == NULL){
-        // The station is not present, so don't remove the car
-        printf("non rottamata\n");
-    } else {
-        // The station is present, so try to remove it
-        short position = -1;
-        short maxCars = result->carNumber;
-        int *carArray = result -> cars;
-        for(short i = 0; i < maxCars; i++){
-            if(car == carArray[i]){
-                position = i;
-                break;
-            }
-        }
-        if(position == -1){
-            // The car is not present in the station, so don't remove it
-            printf("non rottamata\n");
-        } else {
-            // Copy the last car in the position of the car that needs to be removed
-            result->cars[position] = result->cars[maxCars-1];
-            (result->carNumber)--;
-            if(car == result->maxPower){
-                // Find the new max power car
-                int newMax = 0;
-                maxCars = result->carNumber;
-                carArray = result -> cars;
-                for(short i = 0; i < maxCars; i++){
-                    if(carArray[i] > newMax){
-                        newMax = carArray[i];
-                    }
-                }
-                result->maxPower = newMax;
-            }
-            printf("rottamata\n");
-        }
-    }
+
 }
 
 void findRoute(int source, int destination){
 
 }
 
-// Red-Black Tree management functions
-Node* newRBNode(int stationID, short carNumber, const int *cars, int maxPower){
+Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
 
-    Node *temp = (Node*) malloc(sizeof(Node));
-    temp->color     = RED;
-    temp->left      = NULL;
-    temp->right     = NULL;
-    temp->parent    = NULL;
-    temp->stationID = stationID;
-    temp->carNumber = carNumber;
-    temp->maxPower  = maxPower;
-    for(int i = 0; i < carNumber; i++){
-        temp->cars[i] = cars[i];
-    }
+    Node* new = malloc(sizeof(Node));
+    new -> color = RED;
+    new -> parent = NULL;
+    new -> right = NULL;
+    new -> left = NULL;
+    new -> stationID = stationID;
+    new -> carNumber = carNumber;
+    memcpy(new -> cars, cars, carNumber * sizeof(int));
+    new -> maxPower = maxPower;
 
-    return temp;
+    return new;
+
 }
 
-Node* RBMinimum(Node* x){
-    while(x->left != NULL){
-        x = x->left;
-    }
-    return x;
-}
+void RBInsert(RBTree T, int stationID, short carNumber, int cars[], int maxPower){
 
-Node* RBSuccessor(Node* x){
-    Node* y;
-    if(x->right != NULL){
-        return RBMinimum(x->right);
-    }
-    y = x->parent;
-    while(y != NULL && x == y->right){
-        x = y;
-        y = y->parent;
-    }
-    return y;
-}
+    Node* z = newNode(stationID, carNumber, cars, maxPower);
+    Node* y = NULL;
+    Node* x = (*T);
 
-Node* locateNode(Node** T, int stationID){
-    if((*T) == NULL || (*T)->stationID == stationID){
-        return (*T);
+    while(x != NULL){
+        y = x;
+        if(z -> stationID < x -> stationID){
+            x = x -> left;
+        } else {
+            x = x -> right;
+        }
     }
-    if(stationID > (*T) -> stationID){
-        return locateNode(&((*T)->right), stationID);
+
+    z -> parent = y;
+
+    if(y == NULL){
+        assert((*T) == NULL);
+        (*T) = z;
+    } else if(z -> stationID < y -> stationID){
+        y -> left = z;
     } else {
-        return locateNode(&((*T)->left), stationID);
+        y -> right = z;
     }
+
+    z -> left = NULL;
+    z -> right = NULL;
+    z -> color = RED;
+
+    RBInsertFixup(T, z);
+
 }
 
-char isPresent(Node** T, int stationID){
-    if((*T) == NULL){
-        return '0';
+void RBInsertFixup(RBTree T, Node* z){
+
+    assert(T && z);
+    while (z != (*T) && z -> parent -> color == RED) {
+        assert(z->parent->parent);
+        if (z->parent == z->parent->parent->left) {
+            Node *y = z->parent->parent->right;
+            if (y != NULL && y->color == RED) {
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;
+            } else {
+                if (z == z->parent->right) {
+                    z = z->parent;
+                    RBLeftRotate(T, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                RBRightRotate(T, z->parent->parent);
+            }
+        } else {
+            assert(z->parent == z->parent->parent->right);
+            Node *y = z->parent->parent->left;
+            if (y != NULL && y->color == RED) {
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;
+            } else {
+                if (z == z->parent->left) {
+                    z = z->parent;
+                    RBRightRotate(T, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                RBLeftRotate(T, z->parent->parent);
+            }
+        }
     }
-    if((*T)->stationID == stationID){
-        return '1';
-    }
-    if(stationID > (*T) -> stationID){
-        return isPresent(&((*T)->right), stationID);
-    } else {
-        return isPresent(&((*T)->left), stationID);
-    }
+    (*T)->color = BLACK;
 }
 
-void rotateLeft(Node** T, Node* x){
-    Node *y  = x->right;
+void RBLeftRotate(RBTree T, Node* x){
+    Node *y = x->right;
     x->right = y->left;
     if (y->left != NULL)
         y->left->parent = x;
+
     y->parent = x->parent;
-    if (x->parent == NULL)
-        *T = y;
-    else if (x == x->parent->left)
+    if (x->parent == NULL) {
+        (*T) = y;
+    } else if (x == x->parent->left)
         x->parent->left = y;
-    else
+    else {
         x->parent->right = y;
-    y->left   = x;
+    }
+
+    y->left = x;
     x->parent = y;
+
 }
 
-void rotateRight(Node** T, Node* y){
-    Node *x  = y->left;
-    y->left  = x->right;
-    if (x->right != NULL)
-        x->right->parent = y;
-    x->parent = y->parent;
-    if (y->parent == NULL)
-        *T = x;
-    else if (y == y->parent->right)
-        y->parent->right = x;
-    else
-        y->parent->left  = x;
-    x->right  = y;
-    y->parent = x;
-}
-
-void RBInsertFixup(Node** T, Node* z){
-    if(z == *T){
-        (*T)->color = BLACK;
-    } else {
-        Node* x;
-        x = z->parent;
-        if(x->color == RED){
-            if(x == x->parent->left){
-                Node* y;
-                y = x->parent->right;
-                if(y->color == RED){
-                    x->color = BLACK;
-                    y->color = BLACK;
-                    x->parent->color = RED;
-                    RBInsertFixup(T, x->parent);
-                } else {
-                    if(z == x->right){
-                        z = x;
-                        rotateLeft(T, z);
-                        x = z -> parent;
-                    }
-                    x->color = BLACK;
-                    x->parent->color = RED;
-                    rotateRight(T, x->parent);
-                }
-            } else {
-                Node* y;
-                y = x->parent->left;
-                if(y->color == RED){
-                    x->color = BLACK;
-                    y->color = BLACK;
-                    x->parent->color = RED;
-                    RBInsertFixup(T, x->parent);
-                } else {
-                    if(z == x->left){
-                        z = x;
-                        rotateRight(T, z);
-                        x = z -> parent;
-                    }
-                    x->color = BLACK;
-                    x->parent->color = RED;
-                    rotateLeft(T, x->parent);
-                }
-            }
-        }
+void RBPrint(Node* x){
+    if(x != NULL){
+        RBPrint(x -> left);
+        printf("COLOR: %c, ID: %d\n", x -> color, x -> stationID);
+        RBPrint(x -> right);
     }
 }
 
-void RBInsert(Node** T, int stationID, short carNumber, const int *cars, int maxPower){
+void RBRightRotate(RBTree T, Node* x){
+    Node *y = x->left;
+    x->left = y->right;
+    if (y->right != NULL)
+        y->right->parent = x;
 
-    Node* z = newRBNode(stationID, carNumber, cars, maxPower);
-    Node* y =  NULL;
-    Node* x = *T;
-
-    // Find where to Insert new node Z into the binary search tree
-    while (x != NULL) {
-        y = x;
-        if (z->stationID < x->stationID)
-            x = x->left;
-        else
-            x = x->right;
+    y->parent = x->parent;
+    if (x->parent == NULL) {
+        (*T) = y;
+    } else if (x == x->parent->left)
+        x->parent->left = y;
+    else {
+        x->parent->right = y;
     }
 
-    z->parent = y;
-    if (y == NULL)
-        *T = z;
-    else if (z->stationID < y->stationID)
-        y->left  = z;
-    else
-        y->right = z;
-
-    // Init z as a red leaf
-    z->left  = NULL;
-    z->right = NULL;
-    z->color = RED;
-
-    // Ensure the Red-Black property is maintained
-    RBInsertFixup(T, z);
-}
-
-void RBDeleteFixup(Node** T, Node* x){
-    if(x->color == RED || x->parent == NULL){
-        x->color = BLACK;
-    } else if(x == x->parent->left){
-        Node* w;
-        w = x->parent->right;
-        if(w->color == RED){
-            w->color = BLACK;
-            x->parent->color = RED;
-            rotateLeft(T, x->parent);
-            w = x->parent->right;
-        }
-        if(w->left->color == BLACK && w->right->color == BLACK){
-            w -> color = RED;
-            RBDeleteFixup(T, x->parent);
-        } else {
-            if(w->right->color == BLACK){
-                w->left->color = BLACK;
-                w -> color = RED;
-                rotateRight(T, w);
-                w = x->parent->right;
-            }
-            w->color = x->parent->color;
-            x->parent->color = BLACK;
-            w->right->color = BLACK;
-            rotateLeft(T, x->parent);
-        }
-    } else {
-        Node* w;
-        w = x->parent->left;
-        if(w->color == RED){
-            w->color = BLACK;
-            x->parent->color = RED;
-            rotateRight(T, x->parent);
-            w = x->parent->left;
-        }
-        if(w->right->color == BLACK && w->left->color == BLACK){
-            w -> color = RED;
-            RBDeleteFixup(T, x->parent);
-        } else {
-            if(w->left->color == BLACK){
-                w->right->color = BLACK;
-                w -> color = RED;
-                rotateLeft(T, w);
-                w = x->parent->left;
-            }
-            w->color = x->parent->color;
-            x->parent->color = BLACK;
-            w->left->color = BLACK;
-            rotateRight(T, x->parent);
-        }
-    }
-}
-
-void RBDelete(Node** T, Node* z){
-    Node *x, *y;
-    if(z->left == NULL || z->right == NULL){
-        y = z;
-    } else {
-        y = RBSuccessor(z);
-    }
-    if(y->left != NULL){
-        x = y->left;
-    } else {
-        x = y->right;
-    }
-    x->parent = y->parent;
-    if(y->parent == NULL){
-        (*T) = x;
-    } else if(y == y->parent->left){
-        y->parent->left = x;
-    } else {
-        y->parent->right = x;
-    }
-    if(y != z){
-        z -> stationID = y -> stationID;
-        z -> carNumber = y -> carNumber;
-        memcpy(z->cars, y->cars, z->carNumber * sizeof(int ));
-    }
-    if(y->color == BLACK){
-        RBDeleteFixup(T, x);
-    }
-    free(y);
+    y->right = x;
+    x->parent = y;
 }
