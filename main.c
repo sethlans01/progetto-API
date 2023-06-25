@@ -40,7 +40,10 @@ void addCar(int station, int car);
 void removeCar(int station, int car);
 void findRoute(int source, int destination);
 
-// Red-Black Tree management functions
+/*
+ * SECTION FOR RB-TREE FUNCTIONS DECLARATION
+ */
+Node* findNode(RBTree T, int stationID);
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower);
 void RBInsert(RBTree T, int stationID, short carNumber, int cars[], int maxPower);
 void RBInsertFixup(RBTree T, Node* z);
@@ -133,7 +136,18 @@ int main() {
     return 0;
 }
 
+/*
+ * SECTION FOR COMMANDS FUNCTION IMPLEMENTATION
+ */
+
 void addStation(int station, short car_number, int *cars_to_add, int maxPower){
+    Node* result = findNode(highway, station);
+    if(result == NULL){
+        RBInsert(highway, station, car_number, cars_to_add, maxPower);
+        printf("aggiunta\n");
+    } else {
+        printf("non aggiunta\n");
+    }
 }
 
 void removeStation(int station){
@@ -150,6 +164,24 @@ void removeCar(int station, int car){
 
 void findRoute(int source, int destination){
 
+}
+
+/*
+ * SECTION FOR RB-TREE FUNCTIONS IMPLEMENTATION
+ */
+Node* findNode(RBTree T, int stationID){
+    assert(T && stationID);
+    Node *x = (*T);
+    while (x != NULL) {
+        if (stationID == x -> stationID){
+            return x;
+        } else if (stationID < x -> stationID) {
+            x = x->left;
+        } else {
+            x = x->right;
+        }
+    }
+    return NULL;
 }
 
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
