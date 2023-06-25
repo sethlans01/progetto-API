@@ -170,18 +170,15 @@ void findRoute(int source, int destination){
  * SECTION FOR RB-TREE FUNCTIONS IMPLEMENTATION
  */
 Node* findNode(RBTree T, int stationID){
-    assert(T && stationID);
-    Node *x = (*T);
-    while (x != NULL) {
-        if (stationID == x -> stationID){
-            return x;
-        } else if (stationID < x -> stationID) {
-            x = x->left;
-        } else {
-            x = x->right;
+        Node* x = (*T);
+        while(x != NULL && x -> stationID != stationID){
+            if(stationID < x -> stationID){
+                x = x -> left;
+            } else {
+                x = x -> right;
+            }
         }
-    }
-    return NULL;
+        return x;
 }
 
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
