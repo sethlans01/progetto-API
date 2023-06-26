@@ -45,11 +45,15 @@ void findRoute(int source, int destination);
  */
 Node* findNode(RBTree T, int stationID);
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower);
+Node* treeMinimum(Node* x);
+void RBDelete(RBTree T, Node* z);
+void RBDeleteFixup(RBTree T, Node* x);
 void RBInsert(RBTree T, int stationID, short carNumber, int cars[], int maxPower);
 void RBInsertFixup(RBTree T, Node* z);
 void RBLeftRotate(RBTree T, Node* x);
 void RBPrint(Node* x);
 void RBRightRotate(RBTree T, Node* x);
+void RBTransplant(RBTree T, Node* u, Node* v);
 
 // Global variables
 RBTree highway;
@@ -125,6 +129,8 @@ int main() {
 
             // Call the function that calculates the route
             findRoute(source, destination);
+        } else {
+            break;
         }
 
         // If arrived at the end of the file terminate the program
@@ -151,19 +157,25 @@ void addStation(int station, short car_number, int *cars_to_add, int maxPower){
 }
 
 void removeStation(int station){
-
+    Node* result = findNode(highway, station);
+    if(result == NULL){
+        printf("non demolita\n");
+    } else {
+        RBDelete(highway, result);
+        printf("demolita\n");
+    }
 }
 
 void addCar(int station, int car){
-
+    printf("aggiungi auto\n");
 }
 
 void removeCar(int station, int car){
-
+    printf("rottama auto\n");
 }
 
 void findRoute(int source, int destination){
-
+    printf("pianifica percorso\n");
 }
 
 /*
@@ -194,6 +206,124 @@ Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
     new -> maxPower = maxPower;
 
     return new;
+
+}
+
+Node* treeMinimum(Node* x){
+    while(x -> left != NULL){
+        x = x -> left;
+    }
+    return x;
+}
+
+void RBDelete(RBTree T, Node* z){
+
+    assert(*T && z);
+    Node *x = NULL;
+    Node *y = z;
+    char y_orig_c = y->color;
+    if (z->left == NULL) {
+        x = z->right;
+        RBTransplant(T, z, z->right);
+    } else if (z->right == NULL) {
+        x = z->left;
+        RBTransplant(T, z, z->left);
+    } else {
+        y = treeMinimum(z->right);
+        y_orig_c = y->color;
+        x = y->right;
+        if (y->parent == z && x)
+            x->parent = y;
+        else {
+            RBTransplant(T, y, y->right);
+            y->right = z->right;
+            if(y->right)
+                y->right->parent = y;
+        }
+        RBTransplant(T, z, y);
+        y->left = z->left;
+        y->left->parent = y;
+        y->color = z->color;
+    }
+    if (y_orig_c == BLACK)
+        RBDeleteFixup(T, x);
+    free(z);
+
+}
+
+void RBDeleteFixup(RBTree T, Node* x){
+
+    if(*T == NULL || x == NULL)
+        return;
+
+    while(x != (*T) && x->color == BLACK){
+        if(x==x->parent->left){
+            Node* w = x->parent->right;
+
+            if(w == NULL)
+                break;
+
+            if(w->color==RED){
+                w->color = BLACK;
+                x->parent->color = BLACK;
+                RBLeftRotate(T,x->parent);
+                w = x->parent->right;
+            }
+
+            if(w != NULL && (w -> left == NULL || w->left->color==BLACK) && (w->right == NULL || w->right->color == BLACK)){
+                w->color = RED;
+                x = x->parent;
+            } else {
+                if( w != NULL && (w->right == NULL || w->right->color == BLACK)){
+                    w->left->color = BLACK;
+                    w->color = RED;
+                    RBRightRotate(T,w);
+                    w = x->parent->right;
+                }
+
+                if(w!=NULL)
+                    w->color = x->parent->color;
+                x->parent->color = BLACK;
+                if(w != NULL){
+                w->right->color = BLACK;
+                RBLeftRotate(T,x->parent);}
+                x = (*T);
+            }
+        }  else {
+            Node* w = x->parent->left;
+
+            if(w == NULL)
+                break;
+
+            if(w->color==RED){
+                w->color = BLACK;
+                x->parent->color = BLACK;
+                RBRightRotate(T,x->parent);
+                w = x->parent->left;
+            }
+
+            if(w != NULL && (w->right == NULL || w->right->color==BLACK) && (w->left == NULL || w->left->color == BLACK)){
+                w->color = RED;
+                x = x->parent;
+            } else {
+                if(w != NULL && (w->left == NULL || w->left->color == BLACK)){
+                    w->right->color = BLACK;
+                    w->color = RED;
+                    RBLeftRotate(T,w);
+                    w = x->parent->left;
+                }
+
+                if(w != NULL)
+                    w->color = x->parent->color;
+                x->parent->color = BLACK;
+                if(w != NULL){
+                    w->left->color = BLACK;
+                RBRightRotate(T,x->parent);}
+                x = (*T);
+            }
+        }
+    }
+    x->color = BLACK;
 
 }
 
@@ -319,4 +449,17 @@ void RBRightRotate(RBTree T, Node* x){
 
     y->right = x;
     x->parent = y;
+}
+
+void RBTransplant(RBTree T, Node* u, Node* v){
+    if(u -> parent == NULL){
+        (*T) = v;
+    } else if(u == u -> parent -> left){
+        u -> parent -> left = v;
+    } else {
+        u -> parent -> right = v;
+    }
+    if(v != NULL){
+        v -> parent = u -> parent;
+    }
 }
