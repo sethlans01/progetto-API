@@ -167,7 +167,22 @@ void removeStation(int station){
 }
 
 void addCar(int station, int car){
-    printf("aggiungi auto\n");
+    Node* result = findNode(highway, station);
+    if(result == NULL){
+        printf("non aggiunta\n");
+    } else {
+        int carsPresent = result -> carNumber;
+        if(carsPresent == 512){
+            printf("non aggiunta\n");
+            return;
+        }
+        result -> cars[carsPresent] = car;
+        (result -> carNumber)++;
+        if(car > result->maxPower){
+            result->maxPower = car;
+        }
+        printf("aggiunta\n");
+    }
 }
 
 void removeCar(int station, int car){
