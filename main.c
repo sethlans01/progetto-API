@@ -186,7 +186,49 @@ void addCar(int station, int car){
 }
 
 void removeCar(int station, int car){
-    printf("rottama auto\n");
+    Node* result = findNode(highway, station);
+    if(result == NULL){
+        printf("non rottamata\n");
+        return;
+    } else {
+        int carsPresent = result -> carNumber;
+        if(carsPresent == 0){
+            printf("non rottamata\n");
+            return;
+        }
+        // Find the car
+        int position = -1;
+        int* cars = result -> cars;
+        for(int i = 0; i < carsPresent; i++){
+            if(cars[i] == car){
+                position = i;
+                break;
+            }
+        }
+
+        if(position == -1){
+            // The car is not present
+            printf("non rottamata\n");
+            return;
+        } else {
+            // Remove the car
+            result -> cars[position] = result -> cars[(result -> carNumber) - 1];
+            (result -> carNumber)--;
+            if(car == result->maxPower){
+                // Find the new max
+                cars = result -> cars;
+                int newMax = 0;
+                for(int i = 0; i < result -> carNumber; i++){
+                    if(cars[i] > newMax){
+                        newMax = cars[i];
+                    }
+                }
+
+            }
+            printf("rottamata\n");
+
+        }
+    }
 }
 
 void findRoute(int source, int destination){
