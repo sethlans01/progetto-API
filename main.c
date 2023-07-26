@@ -14,6 +14,10 @@
 #define FIND_ROUTE "pianifica-percorso"
 #define RED 'r'
 #define BLACK 'b'
+#define OK 'O'
+#define NO 'N'
+#define FORWARD 'F'
+#define BACKWARDS 'B'
 
 /*
  * SECTION FOR THE DECLARATION OF DATA STRUCTURES
@@ -54,6 +58,14 @@ void RBLeftRotate(RBTree T, Node* x);
 void RBPrint(Node* x);
 void RBRightRotate(RBTree T, Node* x);
 void RBTransplant(RBTree T, Node* u, Node* v);
+
+/*
+ * SECTION FOR FIND ROUTE FUNCTIONS
+ */
+char findForwardRoute(int source, int destination);
+char findBackwardsRoute(int source, int destination);
+void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction);
+void inorderWalk(Node* x, RBTree list, int source, int destination);
 
 // Global variables
 RBTree highway;
@@ -232,7 +244,25 @@ void removeCar(int station, int car){
 }
 
 void findRoute(int source, int destination){
-    printf("pianifica percorso\n");
+
+    char result;
+
+    // If source and destination are the same, print source and return
+    if(source == destination){
+        printf("%d\n", source);
+        return;
+    }
+
+    // Look at the direction
+    if(destination > source){   // Forward
+        result = findForwardRoute(source, destination);
+    } else {                    // Backwards
+        result = findBackwardsRoute(source, destination);
+    }
+
+    if(result == NO){
+        printf("nessun percorso\n");
+    }
 }
 
 /*
@@ -518,5 +548,59 @@ void RBTransplant(RBTree T, Node* u, Node* v){
     }
     if(v != NULL){
         v -> parent = u -> parent;
+    }
+}
+
+char findForwardRoute(int source, int destination){
+
+    // Check if you can go directly from source to destination
+    Node* sourceNode = findNode(highway, source);
+    int maxDistance = source + (sourceNode -> maxPower);
+    if(maxDistance >= destination){
+        printf("%d %d\n", source, destination);
+        return OK;
+    }
+
+    // Create adjacency list
+    RBTree adjacencyList = malloc(sizeof(Node*));
+    *adjacencyList = NULL;
+    initializeAdjacencyList(adjacencyList, source, destination, FORWARD);
+
+    //TODO: FINISH DIS
+
+    return NO;
+}
+
+char findBackwardsRoute(int source, int destination){
+
+    // Check if you can go directly from source to destination
+    Node* sourceNode = findNode(highway, source);
+    int maxDistance = source - (sourceNode -> maxPower);
+    if(maxDistance <= destination){
+        printf("%d %d\n", source, destination);
+        return OK;
+    }
+
+    //TODO: FINISH DIS
+    return NO;
+}
+
+void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction){
+    if(direction == FORWARD){
+        // Find source node
+        Node* sourceNode = findNode(highway, source);
+        inorderWalk(sourceNode, adjacencyList, source, destination);
+    }
+    //TODO: FINISH DIS with BACKWARDS
+}
+
+void inorderWalk(Node* x, RBTree list, int source, int destination){
+    if(x != NULL && ((x -> stationID) >= source)){
+        inorderWalk(x->left, list, source, destination);
+        if(x->stationID == destination){
+            return;
+        }
+        RBInsert(list, x->stationID, 0, NULL, ((x->stationID) + (x->maxPower)));
+        inorderWalk(x->right, list, source, destination);
     }
 }
