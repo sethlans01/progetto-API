@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <limits.h>
 
 #define COMMAND_LENGTH 18
 #define MAX_CARS 512
@@ -65,7 +66,6 @@ Node* newNode(int stationID, short carNumber, int cars[], int maxPower);
 Node* treeMinimum(Node* x);
 void RBDelete(RBTree T, Node* z);
 void RBDeleteFixup(RBTree T, Node* x);
-void RBFree(Node* x);
 void RBInsert(RBTree T, int stationID, short carNumber, int cars[], int maxPower);
 void RBInsertFixup(RBTree T, Node* z);
 void RBLeftRotate(RBTree T, Node* x);
@@ -90,7 +90,6 @@ int bfs(RBTree adjacencyList, int source, int destination);
 void ascendingAdd(Node* x, RBTree list, int source, int destination);
 void bfsFor(Node* x, int maxDistanceReachable, int source, short distance, Queue queue);
 void colorBFS(Node* x, int source);
-void descendingAdd(Node* x, RBTree list, int source, int destination);
 void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction);
 
 
@@ -441,17 +440,6 @@ void RBDeleteFixup(RBTree T, Node* x){
 
 }
 
-void RBFree(Node* x){
-
-        if(x == NULL)
-            return;
-
-        RBFree(x -> left);
-        RBFree(x -> right);
-        free(x);
-
-}
-
 void RBInsert(RBTree T, int stationID, short carNumber, int cars[], int maxPower){
 
     Node* z = newNode(stationID, carNumber, cars, maxPower);
@@ -657,13 +645,7 @@ char findBackwardsRoute(int source, int destination){
         return OK;
     }
 
-    // Create adjacency list
-    RBTree adjacencyList = malloc(sizeof(Node*));
-    *adjacencyList = NULL;
-    initializeAdjacencyList(adjacencyList, source, destination, FORWARD);
-
-    RBFree(*adjacencyList);
-
+    //TODO: FINISH DIS
     return NO;
 }
 
@@ -682,35 +664,96 @@ char findForwardRoute(int source, int destination){
     *adjacencyList = NULL;
     initializeAdjacencyList(adjacencyList, source, destination, FORWARD);
 
-    RBFree(*adjacencyList);
+    int steps = bfs(adjacencyList, source, destination);
 
-    return NO;
+    //TODO: FINISH DIS
+
+    printf("Steps: %d\n", steps);
+
+    //TODO: change dis to NO
+    return OK;
+}
+
+int bfs(RBTree adjacencyList, int source, int destination){
+    //Print the adjacency list
+    RBPrint(*adjacencyList);
+
+    // Create the queue
+    Queue queue = (Queue) malloc(sizeof(Q));
+    queue -> head = -1;
+    queue -> tail = -1;
+
+    // Color each node white and set their distance to infinite, then color the source node as gray and set its distance to 0
+    // Note: the distance is saved in the attribute carNumber and the color is saved in the color attribute
+    colorBFS(*adjacencyList, source);
+
+    // Enqueue the source node
+    enqueue(queue, source);
+
+    while(isEmpty(queue) == NO){
+        // Remove an element from the queue
+        int u = dequeue(queue);
+        Node* uNode = findNode(adjacencyList, u);
+
+        bfsFor(uNode, uNode->maxPower, u, uNode -> carNumber, queue);
+
+        uNode -> color = BLACK;
+    }
+
+    Node* destinationNode = findNode(adjacencyList, destination);
+
+    if(destinationNode == NULL){
+        return 0;
+    }
+    return destinationNode -> carNumber;
 }
 
 void ascendingAdd(Node* x, RBTree list, int source, int destination){
-    if(x!=NULL){
-        ascendingAdd(x -> left, list, source, destination);
-        if(x -> stationID >= source && x -> stationID <= destination){
-            RBInsert(list, x->stationID, 0, NULL, ((x->stationID) + (x->maxPower)));
+    if(x != NULL && ((x -> stationID) >= source)){
+        ascendingAdd(x->left, list, source, destination);
+        if(x->stationID == destination){
+            return;
         }
-        ascendingAdd(x -> right, list, source, destination);
+        RBInsert(list, x->stationID, 0, NULL, ((x->stationID) + (x->maxPower)));
+        ascendingAdd(x->right, list, source, destination);
     }
 }
 
-void descendingAdd(Node* x, RBTree list, int source, int destination){
-    if(x!=NULL){
-        descendingAdd(x -> left, list, source, destination);
-        if(x -> stationID <= source && x -> stationID >= destination){
-            RBInsert(list, x->stationID, 0, NULL, ((x->stationID) - (x->maxPower)));
+void bfsFor(Node* x, int maxDistanceReachable, int source, short distance, Queue queue){
+    if(x != NULL && ((x -> stationID) >= source)){
+        bfsFor(x->left, maxDistanceReachable, source, distance, queue);
+        if(x->stationID > maxDistanceReachable){
+            return;
         }
-        descendingAdd(x -> right, list, source, destination);
+        if(x -> color == WHITE){
+            x -> color = GRAY;
+            x -> carNumber = distance + 1;
+            enqueue(queue, x -> stationID);
+        }
+        bfsFor(x->right, maxDistanceReachable, source, distance, queue);
     }
 }
 
-void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction) {
-    if (direction == FORWARD) {
-        ascendingAdd(*highway, adjacencyList, source, destination);
-    } else {
-        descendingAdd(*highway, adjacencyList, source, destination);
+void colorBFS(Node* x, int source){
+    if(x != NULL){
+        colorBFS(x->left, source);
+        if(x->stationID != source){
+            x -> color = WHITE;
+            x -> carNumber = SHRT_MAX;
+        } else {
+            x -> color = GRAY;
+        }
+        colorBFS(x->right, source);
     }
 }
+
+void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction){
+    if(direction == FORWARD){
+        // Find source node
+        Node* sourceNode = findNode(highway, source);
+        ascendingAdd(sourceNode, adjacencyList, source, destination);
+        RBInsert(adjacencyList, destination, 0, NULL, 0);
+    }
+    //TODO: FINISH DIS with BACKWARDS
+}
+
