@@ -37,6 +37,23 @@ typedef struct Node{
 
 typedef Node** RBTree;
 
+typedef struct Level{
+    short level;
+    struct Level *previous;
+} Level;
+
+typedef Level* DoomStructure;
+
+typedef struct BNode{
+    int stationID;
+    int maxDistanceReachable;
+    struct BNode *left;
+    struct BNode *right;
+    struct BNode *parent;
+} BNode;
+
+typedef BNode* LevelInhabitants;
+
 /*
  * SECTION FOR COMMANDS FUNCTIONS DECLARATION
  */
@@ -61,6 +78,23 @@ void RBLeftRotate(RBTree T, Node* x);
 void RBPrint(Node* x);
 void RBRightRotate(RBTree T, Node* x);
 void RBTransplant(RBTree T, Node* u, Node* v);
+
+/*
+ * SECTION FOR LIST FUNCTIONS DECLARATION
+ */
+Level* newLevel(short level);
+void DSFree(DoomStructure structure);
+void DSInsert(DoomStructure structure, short level);
+
+/*
+ * SECTION FOR BST FUNCTIONS DECLARATION
+ */
+BNode* findBNode(LevelInhabitants li, int stationID);
+BNode* newBNode(int stationID, int maxDistance);
+BNode* BSTMinimum(LevelInhabitants li);
+BNode* BSTSuccessor(LevelInhabitants li);
+void BSTFree(LevelInhabitants li);
+void BSTInsert(LevelInhabitants li, int stationID, int maxDistance);
 
 /*
  * SECTION FOR FIND ROUTE FUNCTIONS DECLARATION
@@ -564,6 +598,107 @@ void RBTransplant(RBTree T, Node* u, Node* v){
     }
     if(v != NULL){
         v -> parent = u -> parent;
+    }
+}
+
+/*
+ * SECTION FOR LIST FUNCTIONS IMPLEMENTATION
+ */
+Level* newLevel(short level){
+    Level* new = malloc(sizeof(Level));
+    new -> level = level;
+    new -> previous = NULL;
+    return new;
+}
+
+void DSFree(DoomStructure structure){
+    Level* curr = structure;
+    while(curr != NULL){
+        Level* prev = curr->previous;
+        free(curr);
+        curr = prev;
+    }
+}
+
+void DSInsert(DoomStructure structure, short level){
+    Level* new = newLevel(level);
+    new->previous = structure;
+    structure = new;
+}
+
+/*
+ * SECTION FOR BST FUNCTIONS DECLARATION
+ */
+BNode* findBNode(LevelInhabitants li, int stationID){
+    BNode* x = li;
+    while(x != NULL && x -> stationID != stationID){
+        if(stationID < x -> stationID){
+            x = x -> left;
+        } else {
+            x = x -> right;
+        }
+    }
+    return x;
+}
+
+BNode* newBNode(int stationID, int maxDistance){
+    BNode* new = malloc(sizeof(BNode));
+    new->stationID = stationID;
+    new->maxDistanceReachable = maxDistance;
+    new->left = NULL;
+    new->right = NULL;
+    new->parent = NULL;
+}
+
+BNode* BSTMinimum(LevelInhabitants li){
+    BNode* x = li;
+    while(x->left != NULL){
+        x = x->left;
+    }
+    return x;
+}
+
+BNode* BSTSuccessor(LevelInhabitants li){
+    BNode* x = li;
+    if(x->right != NULL){
+        return BSTMinimum(x->right);
+    }
+    BNode* y = x->parent;
+    while(y != NULL && (x == (y->right))){
+        x = y;
+        y = y->parent;
+    }
+    return y;
+}
+
+void BSTFree(LevelInhabitants li){
+    if(li == NULL) {
+        return;
+    }
+    BSTFree(li -> left);
+    BSTFree(li -> right);
+    free(li);
+}
+
+void BSTInsert(LevelInhabitants li, int stationID, int maxDistance){
+    BNode* z = newBNode(stationID, maxDistance);
+    BNode* y = NULL;
+    BNode* x = li;
+    while(x != NULL){
+        y = x;
+        if(stationID < x->stationID){
+            x = x->left;
+        } else {
+            x = x->right;
+        }
+    }
+    z->parent = y;
+    if(y == NULL){
+        li = z;
+    } else if(stationID < y->stationID){
+        y->left = z;
+    } else {
+        y->right = z;
     }
 }
 
