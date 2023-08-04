@@ -47,6 +47,7 @@ typedef Level* DoomStructure;
 typedef struct BNode{
     int stationID;
     int maxDistanceReachable;
+    char color;
     struct BNode *left;
     struct BNode *right;
     struct BNode *parent;
@@ -95,6 +96,9 @@ BNode* BSTMinimum(LevelInhabitants li);
 BNode* BSTSuccessor(LevelInhabitants li);
 void BSTFree(LevelInhabitants li);
 void BSTInsert(LevelInhabitants li, int stationID, int maxDistance);
+void BSTInsertFixup(LevelInhabitants T, BNode* z);
+void BSTLeftRotate(LevelInhabitants T, BNode* x);
+void BSTRightRotate(LevelInhabitants T, BNode* x);
 
 /*
  * SECTION FOR FIND ROUTE FUNCTIONS DECLARATION
@@ -648,6 +652,8 @@ BNode* newBNode(int stationID, int maxDistance){
     new->left = NULL;
     new->right = NULL;
     new->parent = NULL;
+    new->color = RED;
+    return new;
 }
 
 BNode* BSTMinimum(LevelInhabitants li){
@@ -684,22 +690,112 @@ void BSTInsert(LevelInhabitants li, int stationID, int maxDistance){
     BNode* z = newBNode(stationID, maxDistance);
     BNode* y = NULL;
     BNode* x = li;
+
     while(x != NULL){
         y = x;
-        if(stationID < x->stationID){
-            x = x->left;
+        if(z -> stationID < x -> stationID){
+            x = x -> left;
         } else {
-            x = x->right;
+            x = x -> right;
         }
     }
-    z->parent = y;
+
+    z -> parent = y;
+
     if(y == NULL){
+        assert(li == NULL);
         li = z;
-    } else if(stationID < y->stationID){
-        y->left = z;
+    } else if(z -> stationID < y -> stationID){
+        y -> left = z;
     } else {
-        y->right = z;
+        y -> right = z;
     }
+
+    z -> left = NULL;
+    z -> right = NULL;
+    z -> color = RED;
+
+    BSTInsertFixup(li, z);
+}
+
+void BSTInsertFixup(LevelInhabitants T, BNode* z){
+    assert(T && z);
+    while (z != T && z -> parent -> color == RED) {
+        assert(z->parent->parent);
+        if (z->parent == z->parent->parent->left) {
+            BNode *y = z->parent->parent->right;
+            if (y != NULL && y->color == RED) {
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;
+            } else {
+                if (z == z->parent->right) {
+                    z = z->parent;
+                    BSTLeftRotate(T, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                BSTRightRotate(T, z->parent->parent);
+            }
+        } else {
+            assert(z->parent == z->parent->parent->right);
+            BNode *y = z->parent->parent->left;
+            if (y != NULL && y->color == RED) {
+                z->parent->color = BLACK;
+                y->color = BLACK;
+                z->parent->parent->color = RED;
+                z = z->parent->parent;
+            } else {
+                if (z == z->parent->left) {
+                    z = z->parent;
+                    BSTRightRotate(T, z);
+                }
+                z->parent->color = BLACK;
+                z->parent->parent->color = RED;
+                BSTLeftRotate(T, z->parent->parent);
+            }
+        }
+    }
+    T->color = BLACK;
+}
+
+void BSTLeftRotate(LevelInhabitants T, BNode* x){
+    BNode *y = x->right;
+    x->right = y->left;
+    if (y->left != NULL)
+        y->left->parent = x;
+
+    y->parent = x->parent;
+    if (x->parent == NULL) {
+        T = y;
+    } else if (x == x->parent->left)
+        x->parent->left = y;
+    else {
+        x->parent->right = y;
+    }
+
+    y->left = x;
+    x->parent = y;
+}
+
+void BSTRightRotate(LevelInhabitants T, BNode* x){
+    BNode *y = x->left;
+    x->left = y->right;
+    if (y->right != NULL)
+        y->right->parent = x;
+
+    y->parent = x->parent;
+    if (x->parent == NULL) {
+        T = y;
+    } else if (x == x->parent->left)
+        x->parent->left = y;
+    else {
+        x->parent->right = y;
+    }
+
+    y->right = x;
+    x->parent = y;
 }
 
 /*
