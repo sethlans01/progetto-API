@@ -18,11 +18,8 @@
 #define NO 'N'
 #define FORWARD 'F'
 #define BACKWARDS 'B'
-#define MAX_QUEUE_SIZE 100
 #define WHITE 'w'
 #define GRAY 'g'
-
-//TODO: remove [DEBUG]
 
 /*
  * SECTION FOR THE DECLARATION OF DATA STRUCTURES
@@ -39,14 +36,6 @@ typedef struct Node{
 } Node;
 
 typedef Node** RBTree;
-
-typedef struct Q{
-    int data[MAX_QUEUE_SIZE];
-    int head;
-    int tail;
-} Q;
-
-typedef Q* Queue;
 
 /*
  * SECTION FOR COMMANDS FUNCTIONS DECLARATION
@@ -74,22 +63,11 @@ void RBRightRotate(RBTree T, Node* x);
 void RBTransplant(RBTree T, Node* u, Node* v);
 
 /*
- * SECTION FOR QUEUE FUNCTIONS DECLARATION
- */
-char isEmpty(Queue queue);
-char isFull(Queue queue);
-int dequeue(Queue queue);
-void enqueue(Queue queue, int value);
-
-/*
  * SECTION FOR FIND ROUTE FUNCTIONS DECLARATION
  */
 char findBackwardsRoute(int source, int destination);
 char findForwardRoute(int source, int destination);
-int bfs(RBTree adjacencyList, int source, int destination);
 void ascendingAdd(Node* x, RBTree list, int source, int destination);
-void bfsFor(Node* x, int maxDistanceReachable, int source, short distance, Queue queue);
-void colorBFS(Node* x, int source);
 void descendingAdd(Node* x, RBTree list, int source, int destination);
 void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction);
 
@@ -443,12 +421,12 @@ void RBDeleteFixup(RBTree T, Node* x){
 
 void RBFree(Node* x){
 
-        if(x == NULL)
-            return;
-
-        RBFree(x -> left);
-        RBFree(x -> right);
-        free(x);
+    if(x == NULL) {
+        return;
+    }
+    RBFree(x -> left);
+    RBFree(x -> right);
+    free(x);
 
 }
 
@@ -590,61 +568,6 @@ void RBTransplant(RBTree T, Node* u, Node* v){
 }
 
 /*
- * SECTION FOR QUEUE FUNCTIONS IMPLEMENTATION
- */
-
-char isEmpty(Queue queue) {
-    if(queue->head == -1 && queue->tail == -1) {
-        return OK;
-    } else {
-        return NO;
-    }
-}
-
-char isFull(Queue queue) {
-    if((queue->tail + 1) % MAX_QUEUE_SIZE == queue->head){
-        return OK;
-    } else {
-        return NO;
-    }
-}
-
-int dequeue(Queue queue) {
-    if (isEmpty(queue) == OK) { //TODO: remove this
-        printf("[DEBUG] Queue is empty. Cannot dequeue.\n");
-        return -1;
-    }
-
-    int dequeuedValue = queue->data[queue->head];
-
-    if (queue->head == queue->tail) {
-        // Queue becomes empty after dequeue
-        queue->head = -1;
-        queue->tail = -1;
-    } else {
-        queue->head = (queue->head + 1) % MAX_QUEUE_SIZE;
-    }
-
-    return dequeuedValue;
-}
-
-void enqueue(Queue queue, int value) {
-    if (isFull(queue) == OK) { //TODO: remove this
-        printf("[DEBUG] Queue is full. Cannot enqueue %d.\n", value);
-        return;
-    }
-
-    if (isEmpty(queue) == OK) {
-        queue->head = 0;
-        queue->tail = 0;
-    } else {
-        queue->tail = (queue->tail + 1) % MAX_QUEUE_SIZE;
-    }
-
-    queue->data[queue->tail] = value;
-}
-
-/*
  * SECTION FOR FIND ROUTE FUNCTIONS IMPLEMENTATION
  */
 char findBackwardsRoute(int source, int destination){
@@ -660,8 +583,9 @@ char findBackwardsRoute(int source, int destination){
     // Create adjacency list
     RBTree adjacencyList = malloc(sizeof(Node*));
     *adjacencyList = NULL;
-    initializeAdjacencyList(adjacencyList, source, destination, FORWARD);
+    initializeAdjacencyList(adjacencyList, source, destination, BACKWARDS);
 
+    // Delete adjacency list
     RBFree(*adjacencyList);
 
     return NO;
@@ -682,6 +606,7 @@ char findForwardRoute(int source, int destination){
     *adjacencyList = NULL;
     initializeAdjacencyList(adjacencyList, source, destination, FORWARD);
 
+    // Delete adjacency list
     RBFree(*adjacencyList);
 
     return NO;
