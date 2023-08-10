@@ -105,9 +105,6 @@ void BSTRightRotate(LevelInhabitants T, BNode* x);
  */
 char findBackwardsRoute(int source, int destination);
 char findForwardRoute(int source, int destination);
-void ascendingAdd(Node* x, RBTree list, int source, int destination);
-void descendingAdd(Node* x, RBTree list, int source, int destination);
-void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction);
 
 
 // Global variables
@@ -811,14 +808,6 @@ char findBackwardsRoute(int source, int destination){
         return OK;
     }
 
-    // Create adjacency list
-    RBTree adjacencyList = malloc(sizeof(Node*));
-    *adjacencyList = NULL;
-    initializeAdjacencyList(adjacencyList, source, destination, BACKWARDS);
-
-    // Delete adjacency list
-    RBFree(*adjacencyList);
-
     return NO;
 }
 
@@ -832,41 +821,5 @@ char findForwardRoute(int source, int destination){
         return OK;
     }
 
-    // Create adjacency list
-    RBTree adjacencyList = malloc(sizeof(Node*));
-    *adjacencyList = NULL;
-    initializeAdjacencyList(adjacencyList, source, destination, FORWARD);
-
-    // Delete adjacency list
-    RBFree(*adjacencyList);
-
     return NO;
-}
-
-void ascendingAdd(Node* x, RBTree list, int source, int destination){
-    if(x!=NULL){
-        ascendingAdd(x -> left, list, source, destination);
-        if(x -> stationID >= source && x -> stationID <= destination){
-            RBInsert(list, x->stationID, 0, NULL, ((x->stationID) + (x->maxPower)));
-        }
-        ascendingAdd(x -> right, list, source, destination);
-    }
-}
-
-void descendingAdd(Node* x, RBTree list, int source, int destination){
-    if(x!=NULL){
-        descendingAdd(x -> left, list, source, destination);
-        if(x -> stationID <= source && x -> stationID >= destination){
-            RBInsert(list, x->stationID, 0, NULL, ((x->stationID) - (x->maxPower)));
-        }
-        descendingAdd(x -> right, list, source, destination);
-    }
-}
-
-void initializeAdjacencyList(RBTree adjacencyList, int source, int destination, char direction) {
-    if (direction == FORWARD) {
-        ascendingAdd(*highway, adjacencyList, source, destination);
-    } else {
-        descendingAdd(*highway, adjacencyList, source, destination);
-    }
 }
