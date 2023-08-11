@@ -320,15 +320,15 @@ void findRoute(int source, int destination){
  * SECTION FOR RB-TREE FUNCTIONS IMPLEMENTATION
  */
 Node* findNode(RBTree T, int stationID){
-    Node* x = (*T);
-    while(x != NULL && x -> stationID != stationID){
-        if(stationID < x -> stationID){
-            x = x -> left;
-        } else {
-            x = x -> right;
+        Node* x = (*T);
+        while(x != NULL && x -> stationID != stationID){
+            if(stationID < x -> stationID){
+                x = x -> left;
+            } else {
+                x = x -> right;
+            }
         }
-    }
-    return x;
+        return x;
 }
 
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
@@ -436,8 +436,8 @@ void RBDeleteFixup(RBTree T, Node* x){
                     w->color = x->parent->color;
                 x->parent->color = BLACK;
                 if(w != NULL){
-                    w->right->color = BLACK;
-                    RBLeftRotate(T,x->parent);}
+                w->right->color = BLACK;
+                RBLeftRotate(T,x->parent);}
                 x = (*T);
             }
         }  else {
@@ -469,7 +469,7 @@ void RBDeleteFixup(RBTree T, Node* x){
                 x->parent->color = BLACK;
                 if(w != NULL){
                     w->left->color = BLACK;
-                    RBRightRotate(T,x->parent);}
+                RBRightRotate(T,x->parent);}
                 x = (*T);
             }
         }
@@ -874,7 +874,7 @@ char findForwardRoute(int source, int destination){
     printf("%d\n", steps);
 
     // Free the structure
-    // DSFree(map);
+   // DSFree(map);
 
     return NO;
 }

@@ -70,7 +70,9 @@ void findRoute(int source, int destination);
  */
 Node* findNode(RBTree T, int stationID);
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower);
+Node* predecessor(Node* li);
 Node* successor(Node* li);
+Node* treeMaximum(Node* x);
 Node* treeMinimum(Node* x);
 void RBDelete(RBTree T, Node* z);
 void RBDeleteFixup(RBTree T, Node* x);
@@ -108,9 +110,13 @@ void BSTRightRotate(LevelInhabitants T, BNode* x);
 char findBackwardsRoute(int source, int destination);
 char findForwardRoute(int source, int destination);
 char findPortal(int source, int destination);
+char findTeleport(int source, int destination);
 void addNeighbours(LevelInhabitants new, int destination, Node* x);
+void addNeighboursB(LevelInhabitants new, int destination, Node* x);
 void ascendingAdd(DoomStructure map, int source, int destination);
+void descendingAdd(DoomStructure map, int source, int destination);
 void exploreCurrentLevel(LevelInhabitants new, BNode* current, int destination);
+void exploreCurrentLevelB(LevelInhabitants new, BNode* current, int destination);
 void initializeDoomStructure(DoomStructure map, int source, int destination, char direction);
 
 // Global variables
@@ -320,15 +326,15 @@ void findRoute(int source, int destination){
  * SECTION FOR RB-TREE FUNCTIONS IMPLEMENTATION
  */
 Node* findNode(RBTree T, int stationID){
-    Node* x = (*T);
-    while(x != NULL && x -> stationID != stationID){
-        if(stationID < x -> stationID){
-            x = x -> left;
-        } else {
-            x = x -> right;
+        Node* x = (*T);
+        while(x != NULL && x -> stationID != stationID){
+            if(stationID < x -> stationID){
+                x = x -> left;
+            } else {
+                x = x -> right;
+            }
         }
-    }
-    return x;
+        return x;
 }
 
 Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
@@ -347,6 +353,19 @@ Node* newNode(int stationID, short carNumber, int cars[], int maxPower){
 
 }
 
+Node* predecessor(Node* li){
+    Node* x = li;
+    if(x->left != NULL){
+        return treeMaximum(x->left);
+    }
+    Node* y = x->parent;
+    while(y != NULL && (x == (y->left))){
+        x = y;
+        y = y->parent;
+    }
+    return y;
+}
+
 Node* successor(Node* li){
     Node* x = li;
     if(x->right != NULL){
@@ -358,6 +377,13 @@ Node* successor(Node* li){
         y = y->parent;
     }
     return y;
+}
+
+Node* treeMaximum(Node* x){
+    while(x -> right != NULL){
+        x = x -> right;
+    }
+    return x;
 }
 
 Node* treeMinimum(Node* x){
@@ -436,8 +462,8 @@ void RBDeleteFixup(RBTree T, Node* x){
                     w->color = x->parent->color;
                 x->parent->color = BLACK;
                 if(w != NULL){
-                    w->right->color = BLACK;
-                    RBLeftRotate(T,x->parent);}
+                w->right->color = BLACK;
+                RBLeftRotate(T,x->parent);}
                 x = (*T);
             }
         }  else {
@@ -469,7 +495,7 @@ void RBDeleteFixup(RBTree T, Node* x){
                 x->parent->color = BLACK;
                 if(w != NULL){
                     w->left->color = BLACK;
-                    RBRightRotate(T,x->parent);}
+                RBRightRotate(T,x->parent);}
                 x = (*T);
             }
         }
@@ -838,7 +864,24 @@ char findBackwardsRoute(int source, int destination){
         return OK;
     }
 
-    //TODO: finishh dis
+    // Check if exists a station in between source and destination that can bring you to the destination
+    if(findTeleport(source, destination) == NO){
+        return NO;
+    }
+
+    // Create doom structure
+    DoomStructure map = malloc(sizeof(DoomStructure));
+    initializeDoomStructure(map, source, destination, BACKWARDS);
+
+    // If there is a station in between source and destination that can bring you to the destination, but the station
+    // is not reachable, it means that there is no path between them
+    if(steps == -1){
+        return NO;
+    }
+
+    // Else, find the shortest path using the new structure
+    // TODO: find the minimum path
+    printf("%d\n", steps);
 
     return NO;
 }
@@ -865,16 +908,12 @@ char findForwardRoute(int source, int destination){
     // If there is a station in between source and destination that can bring you to the destination, but the station
     // is not reachable, it means that there is no path between them
     if(steps == -1){
-        //DSFree(map);
         return NO;
     }
 
     // Else, find the shortest path using the new structure
     // TODO: find the minimum path
     printf("%d\n", steps);
-
-    // Free the structure
-    // DSFree(map);
 
     return NO;
 }
@@ -894,6 +933,22 @@ char findPortal(int source, int destination){
         current = successor(current);
     }
 
+}
+
+char findTeleport(int source, int destination){
+    Node* current = findNode(highway, source);
+
+    while(1){
+        int id = current->stationID;
+        if(id <= destination){
+            return NO;
+        }
+        int maxDist = (id) - (current->maxPower);
+        if(maxDist <= destination){
+            return OK;
+        }
+        current = predecessor(current);
+    }
 }
 
 void addNeighbours(LevelInhabitants new, int destination, Node* x){
@@ -919,6 +974,41 @@ void addNeighbours(LevelInhabitants new, int destination, Node* x){
             BNode *node = findBNode(new, id);
             if (node == NULL) {
                 int newDistance = id + (neighbour->maxPower);
+                BSTInsert(new, id, newDistance);
+            }
+        } else {
+            break;
+        }
+
+        // Update x
+        x = neighbour;
+    }
+
+}
+
+void addNeighboursB(LevelInhabitants new, int destination, Node* x){
+    // Find the max distance reachable from x
+    int max = (x->stationID) - (x->maxPower);
+
+    while(1){
+        // Find x's successor
+        Node *neighbour = predecessor(x);
+
+        // Check if it's the destination
+        int id = neighbour->stationID;
+        if (destination == id) {
+            if(max <= id){
+                destinationFound = OK;
+            }
+            return;
+        }
+
+        // Check if it's reachable
+        if (max <= id) {
+            // Check if the neighbour is already present in the tree of the new level
+            BNode *node = findBNode(new, id);
+            if (node == NULL) {
+                int newDistance = id - (neighbour->maxPower);
                 BSTInsert(new, id, newDistance);
             }
         } else {
@@ -975,6 +1065,50 @@ void ascendingAdd(DoomStructure map, int source, int destination){
 
 }
 
+void descendingAdd(DoomStructure map, int source, int destination){
+    // Find the node in the RBTree
+    Node* sourceNode = findNode(highway, source);
+
+    // Create service variable
+    int maxDist = (sourceNode->stationID) - (sourceNode->maxPower);
+    // Add the level 0 to the map
+    DSInsert(map, 0);
+    map->inhabitants = malloc(sizeof(LevelInhabitants));
+    *(map->inhabitants) = NULL;
+    BSTInsert(map->inhabitants, source, maxDist);
+
+    // Create the other levels
+    while(1){
+        // Add a new level to the map
+        steps++;
+        map = DSInsert(map, (short)steps);
+        map->inhabitants = malloc(sizeof(LevelInhabitants));
+        *(map->inhabitants) = NULL;
+
+        // Grab the previous level's tree
+        LevelInhabitants previous = map->previous->inhabitants;
+
+        // Explore the current level
+        exploreCurrentLevelB(map->inhabitants, *previous, destination);
+
+        // If the destination was found, delete the tree in the last level and add only the destination to it
+        // Then break the loop
+        if(destinationFound == OK){
+            BSTFree(*(map->inhabitants));
+            BSTInsert(map->inhabitants, destination, 0);
+            break;
+        }
+
+        // If there is a hole in the middle of the highway, i.e. the new level is empty, there is no path from source to destination
+        if(*(map->inhabitants) == NULL){
+            steps = -1;
+            break;
+        }
+
+    }
+
+}
+
 void exploreCurrentLevel(LevelInhabitants new, BNode* current, int destination){
     if(current != NULL){
         exploreCurrentLevel(new, current->left, destination);
@@ -983,9 +1117,19 @@ void exploreCurrentLevel(LevelInhabitants new, BNode* current, int destination){
     }
 }
 
+void exploreCurrentLevelB(LevelInhabitants new, BNode* current, int destination){
+    if(current != NULL){
+        exploreCurrentLevel(new, current->left, destination);
+        addNeighboursB(new, destination, findNode(highway, current->stationID));
+        exploreCurrentLevel(new, current->right, destination);
+    }
+}
+
 void initializeDoomStructure(DoomStructure map, int source, int destination, char direction){
     if(direction == FORWARD){
         ascendingAdd(map, source, destination);
+    } else {
+        descendingAdd(map, source, destination);
     }
     //TODO: finish dis with the backwards direction
 }
