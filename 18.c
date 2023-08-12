@@ -117,8 +117,10 @@ void initializeDoomStructure(DoomStructure map, int source, int destination, cha
 RBTree highway;
 int steps;
 char destinationFound;
+int cp;
 
 int main() {
+    cp = 0;
     int exit = 0;
 
     // Initialize the highway with null
@@ -182,6 +184,7 @@ int main() {
             // Call the function to remove the car from the data structure
             removeCar(station, car);
         } else if (strcmp(command, FIND_ROUTE) == 0) {
+            cp++;
             int source;
             int destination;
             if (scanf("%d", &source) == EOF) exit = 1;
