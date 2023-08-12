@@ -63,9 +63,14 @@ void RBTransplant(RBTree T, Node* u, Node* v);
  */
 char findBackwardsRoute(int source, int destination);
 char findForwardRoute(int source, int destination);
+void countStations(Node* x, int s, int d);
+void findReachableStations(Node* x,int s, int d, int* reachable, int* distances);
 
 // Global variables
 RBTree highway;
+int intermediateStations;
+int ris;
+int reach;
 
 int main() {
     int exit = 0;
@@ -587,6 +592,78 @@ char findForwardRoute(int source, int destination){
         return OK;
     }
 
-    return NO;
+    // Count intermediate stations, i.e. all the stations that are between source and destination
+    intermediateStations = 0;
+    countStations(*highway, source, destination);
+
+    // Create two arrays: one to keep track of the intermediate stations that are reachable and one to keep track of
+    // their biggest car
+    int reachable[intermediateStations];
+    int distances[intermediateStations];
+
+    // Initialize the two arrays
+    ris = 0;
+    reach = maxDistance;
+    findReachableStations(*highway, source, destination, reachable, distances);
+
+    // Check if the destination is in the array
+    if(reachable[ris-1] != destination){
+        return NO;
+    }
+
+    // Do the magic trick
+    int solution[100];
+    int pos = 0;
+    char sourceUsed = NO;
+    int newDest = destination;
+    solution[pos] = newDest;
+    pos++;
+
+    while(sourceUsed == NO){
+        // Find the smallest station to reach the destination
+        for(int i = 0; i < intermediateStations; i++){
+            if(distances[i] >= newDest){
+                solution[pos] = reachable[i];
+                newDest = reachable[i];
+                if(reachable[i] == source){
+                    sourceUsed = OK;
+                }
+                pos++;
+                i = ris;
+            }
+        }
+    }
+
+    for(int i = pos-1; i > 0; i--){
+        printf("%d ", solution[i]);
+    }
+    printf("%d\n", destination);
+
+    return OK;
 }
 
+void countStations(Node* x, int s, int d){
+    if(x != NULL){
+        countStations(x->left, s, d);
+        if(x->stationID >= s && x->stationID <= d){
+            intermediateStations++;
+        }
+        countStations(x->right, s, d);
+    }
+}
+
+void findReachableStations(Node* x,int s, int d, int* reachable, int* distances){
+    if(x != NULL){
+        findReachableStations(x->left, s, d, reachable, distances);
+        int id = x->stationID;
+        if(id >= s && id <= d && id <= reach){
+            reachable[ris] = id;
+            distances[ris] = x->maxPower + id;
+            if(distances[ris] > reach){
+                reach = distances[ris];
+            }
+            ris++;
+        }
+        findReachableStations(x->right, s, d, reachable, distances);
+    }
+}
