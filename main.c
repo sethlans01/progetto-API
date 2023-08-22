@@ -596,14 +596,104 @@ char findBackwardsRoute(int source, int destination){
     // Check if the destination is in the array
     if(reachable[ris-1] != destination){
         return NO;
-    } else {
-        printf("Portal found\n");
-        return OK;
     }
 
-    //TODO: finishh dis
+    // Find the minimum amount of steps
+    int solution[ris];
+    int solutionPositions[ris];
+    int arrayPos = 0;
+    int dist = distances[0];
+    int currentSource = source;
+    int sourcePosition = 0;
+    int localMinimum;
 
-    return NO;
+    solution[arrayPos] = source;
+    solutionPositions[arrayPos] = 0;
+    arrayPos++;
+    //printf("%d", source);
+
+    // Find the minimum path
+    while(1){
+        if(destination >= dist){ // If i can reach the destination stop everything
+            solution[arrayPos] = destination;
+            solutionPositions[arrayPos] = ris-1;
+            arrayPos++;
+            //printf(" %d", destination);
+            break;
+        }
+        int current;
+        localMinimum = currentSource;
+        int forPos = sourcePosition + 1;
+        for(int i = forPos; i < ris; i++){
+            current = reachable[i];
+            if(current < dist){ // If i am outside of range stop the loop
+                break;
+            }
+            if(distances[i] <= localMinimum){ // If i find a new minimum update it
+                localMinimum = distances[i];
+                sourcePosition = i;
+            }
+        }
+        // Go to the localMinimum position
+        dist = localMinimum;
+        currentSource = reachable[sourcePosition];
+        solution[arrayPos] = currentSource;
+        solutionPositions[arrayPos] = sourcePosition;
+        arrayPos++;
+        //printf(" %d", currentSource);
+    }
+
+    char hasReduced;
+
+    // Reduce the path
+    while(1){
+        // Start with the hypothesis of not having reduced anything in the solution
+        hasReduced = NO;
+        int forPos = arrayPos - 2;
+
+        // Iterate through the solution array
+        for(int i = forPos; i > 0 ; i--){
+            int successor = solution[i+1];
+            int predecessorReach = distances[solutionPositions[i-1]];
+            int currentPosition = solutionPositions[i];
+            int candidateID = -1;
+            int candidatePosition = -1;
+            for(int j = currentPosition + 1; j < intermediateStations; j++){
+                int original = reachable[j];
+                int originalDistance = distances[j];
+                if(original < predecessorReach){
+                    j = intermediateStations;
+                } else {
+                    if(successor >= originalDistance){
+                        // I found a candidate
+                        candidateID = original;
+                        candidatePosition = j;
+                    }
+                }
+            }
+            // Check if i found a candidate
+            if(candidateID != -1){
+                // Found it, so substitute the current element
+                solution[i] = candidateID;
+                solutionPositions[i] = candidatePosition;
+                hasReduced = OK;
+            }
+        }
+
+        // Check if i reduced something
+        if(hasReduced == NO){
+            break;
+        }
+
+    }
+
+    // Print the solution
+    for(int i = 0; i < arrayPos-1; i++){
+        printf("%d ", solution[i]);
+    }
+    printf("%d\n", destination);
+
+    return OK;
 }
 
 char findForwardRoute(int source, int destination){
@@ -636,7 +726,7 @@ char findForwardRoute(int source, int destination){
     }
 
     // Do the magic trick
-    int solution[100];
+    int solution[ris];
     int pos = 0;
     char sourceUsed = NO;
     int newDest = destination;

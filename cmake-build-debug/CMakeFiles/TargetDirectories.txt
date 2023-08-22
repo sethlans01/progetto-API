@@ -1,3 +1,4 @@
-C:/Users/iodic/CLionProjects/progetto-APIa/cmake-build-debug/CMakeFiles/untitled.dir
+C:/Users/iodic/CLionProjects/progetto-APIa/cmake-build-debug/CMakeFiles/main.dir
+C:/Users/iodic/CLionProjects/progetto-APIa/cmake-build-debug/CMakeFiles/test.dir
 C:/Users/iodic/CLionProjects/progetto-APIa/cmake-build-debug/CMakeFiles/edit_cache.dir
 C:/Users/iodic/CLionProjects/progetto-APIa/cmake-build-debug/CMakeFiles/rebuild_cache.dir
