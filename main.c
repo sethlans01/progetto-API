@@ -239,7 +239,7 @@ void removeCar(int station, int car){
                         newMax = cars[i];
                     }
                 }
-
+                result->maxPower = newMax;
             }
             printf("rottamata\n");
 
